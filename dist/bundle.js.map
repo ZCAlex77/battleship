@@ -1,0 +1,1 @@
+{"version":3,"file":"bundle.js","mappings":";;;;;AAAA,MAAMA,IAAI,GAAG,CAAC,MAAM;EAClBC,OAAO,CAACC,GAAR,CAAY,cAAZ;AACD,CAFY,GAAb,C","sources":["webpack://battleship/./src/index.js"],"sourcesContent":["const game = (() => {\r\n  console.log('Hello world!');\r\n})();\r\n"],"names":["game","console","log"],"sourceRoot":""}
