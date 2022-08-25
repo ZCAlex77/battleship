@@ -8,12 +8,12 @@ describe('Battleship', () => {
   });
 
   test('was created successfully', () => {
-    expect(battleshipH.ship).toEqual([7, 8, 9]);
-    expect(battleshipV.ship).toEqual([4, 14]);
+    expect(battleshipH.cells).toEqual([7, 8, 9]);
+    expect(battleshipV.cells).toEqual([4, 14]);
   });
 
   test('has correct length', () => {
-    expect(battleshipH.ship.length).toBe(3);
+    expect(battleshipH.cells.length).toBe(3);
   });
 
   test('was hit successfully', () => {

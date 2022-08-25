@@ -1,18 +1,18 @@
 const battleshipFactory = (length, position, orientation) => {
-  const ship = [];
+  const cells = [];
 
   const buildShip = (() => {
     let nextPosDistance = orientation === 'horizontal' ? 1 : 10;
-    for (let i = 0; i < length; i++) ship.push(position + i * nextPosDistance);
+    for (let i = 0; i < length; i++) cells.push(position + i * nextPosDistance);
   })();
 
   const hit = (position) => {
-    if (ship[position] !== 'hit') ship[position] = 'hit';
-    return ship;
+    if (cells[position] !== 'hit') cells[position] = 'hit';
+    return cells;
   };
-  const isSunk = () => ship.every((pos) => pos === 'hit');
+  const isSunk = () => cells.every((pos) => pos === 'hit');
 
-  return { ship, hit, isSunk };
+  return { cells, hit, isSunk };
 };
 
 export default battleshipFactory;
