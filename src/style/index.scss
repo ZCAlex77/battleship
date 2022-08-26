@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
+html {
+  font-family: 'Bebas Neue', cursive;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  color: inherit;
+}
+
+$darker-cyan: hsl(187, 40%, 10%);
+$dark-cyan: hsl(187, 40%, 34%);
+$light-cyan: hsl(187, 40%, 50%);
+
+body {
+  background: $dark-cyan;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  grid-area: 1 / 3 / span 1 / span 3;
+  background: $light-cyan;
+  align-self: center;
+
+  h1 {
+    color: $darker-cyan;
+    font-size: 2rem;
+    text-align: center;
+    width: 100%;
+    letter-spacing: 2px;
+  }
+}
+
+#game {
+  width: 100%;
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 32px 1fr 16px 0.5fr 16px 1fr 32px;
+  grid-template-rows: 64px 1fr 32px;
+}
+
+#stats {
+  grid-area: 2 / 4 / span 1 / span 1;
+  background: $darker-cyan;
+}
+
+.name {
+  grid-row: 1 / span 1;
+  grid-column: 2 / span 1;
+  align-self: center;
+  background: $darker-cyan;
+  color: $light-cyan;
+  justify-self: stretch;
+  padding: 0 10px;
+}
+
+.name:last-of-type {
+  grid-column: 6 / span 1;
+  text-align: right;
+}
+
+.gameboard {
+  display: grid;
+  grid-template: repeat(10, 1fr) / repeat(10, 1fr);
+  gap: 2px;
+  aspect-ratio: 1/1;
+  grid-row: 2 / span 1;
+  align-self: center;
+
+  .cell {
+    border: 1px solid $darker-cyan;
+    cursor: pointer;
+  }
+}
+
+#player-gameboard {
+  grid-column: 2 / span 1;
+}
+
+#computer-gameboard {
+  grid-column: 6 / span 1;
+}
