@@ -12,4 +12,9 @@ const game = (() => {
 
   UI.renderGameboard(playerGameboard.getCells(), players[0].name);
   UI.renderGameboard(computerGameboard.getCells(), players[1].name);
+
+  document.querySelector('#change-name').onsubmit = function (ev) {
+    ev.preventDefault();
+    UI.updateName(this.name.value);
+  };
 })();

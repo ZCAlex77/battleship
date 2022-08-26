@@ -1,4 +1,8 @@
 const UI = (() => {
+  const updateName = (newName) => {
+    document.querySelector('.name').textContent = newName;
+  };
+
   const renderGameboard = (cells, name) => {
     let container = document.createElement('div');
     container.className = 'gameboard';
@@ -18,7 +22,7 @@ const UI = (() => {
     document.querySelector('#game').append(nameDisplay, container);
   };
 
-  return { renderGameboard };
+  return { updateName, renderGameboard };
 })();
 
 export default UI;

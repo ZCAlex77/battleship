@@ -43,9 +43,41 @@ header {
   grid-template-rows: 64px 1fr 32px;
 }
 
-#stats {
+#menu {
   grid-area: 2 / 4 / span 1 / span 1;
   background: $darker-cyan;
+  color: $light-cyan;
+  padding: 16px;
+
+  form {
+    label {
+      font-size: 1.4rem;
+      text-align: center;
+      display: block;
+      margin-bottom: 32px;
+    }
+    input {
+      border: 0;
+      font-size: 1.2rem;
+      padding: 4px;
+      margin-bottom: 16px;
+    }
+    input[type='text'] {
+      background: #fff;
+      color: $darker-cyan;
+      width: 100%;
+      text-align: center;
+    }
+    input[type='submit'] {
+      background: $light-cyan;
+      color: $darker-cyan;
+      margin: 0 50%;
+      transform: translateX(-50%);
+      cursor: pointer;
+      padding: 10px;
+      border-radius: 999px;
+    }
+  }
 }
 
 .name {
