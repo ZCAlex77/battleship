@@ -17,7 +17,8 @@ const gameboardFactory = () => {
     for (const cell of shipCells) {
       if (cell > cells.length) return false;
       if (cells[cell] !== -1) return false;
-      if (Math.floor(cell / 10) !== row) return false;
+      if (orientation === 'horizontal' && Math.floor(cell / 10) !== row)
+        return false;
     }
 
     return true;

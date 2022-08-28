@@ -14,6 +14,7 @@ const game = (() => {
   UI.renderGameboard(playerGameboard.getCells(), players[0].name);
   UI.renderGameboard(computerGameboard.getCells(), players[1].name);
   DOMEvents.addCellEvent(playerGameboard);
+  DOMEvents.addSwitchEvent(playerGameboard);
 
   UI.showShipyard();
 })();

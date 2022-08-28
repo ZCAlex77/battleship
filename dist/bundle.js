@@ -33,9 +33,12 @@ const DOMEvents = (() => {
     _UI__WEBPACK_IMPORTED_MODULE_1__["default"].showShipyard();
   };
 
-  switchOrientation.onclick = function () {
-    if (orientation === 'horizontal') orientation = 'vertical';else orientation = 'horizontal';
-    document.querySelector('#orientation').textContent = orientation;
+  const addSwitchEvent = gameboard => {
+    switchOrientation.onclick = function () {
+      if (orientation === 'horizontal') orientation = 'vertical';else orientation = 'horizontal';
+      gameboard.switchOrientation();
+      document.querySelector('#orientation').textContent = orientation;
+    };
   };
 
   const addCellEvent = gameboard => {
@@ -80,17 +83,21 @@ const DOMEvents = (() => {
       cell.onclick = () => {
         if (currentShipType < shipTypes.length) {
           let ship = (0,_factories_battleship__WEBPACK_IMPORTED_MODULE_0__["default"])(shipTypes[currentShipType].length, currentHover[0], orientation);
-          gameboard.addShip(ship);
-          lastHover = [];
-          _UI__WEBPACK_IMPORTED_MODULE_1__["default"].updateShipyard(currentShipType);
-          currentShipType++;
+          let msg = gameboard.addShip(ship);
+
+          if (msg !== 'Invalid position.') {
+            _UI__WEBPACK_IMPORTED_MODULE_1__["default"].updateShipyard(currentShipType);
+            lastHover = [];
+            currentShipType++;
+          }
         }
       };
     });
   };
 
   return {
-    addCellEvent
+    addCellEvent,
+    addSwitchEvent
   };
 })();
 
@@ -227,12 +234,20 @@ const gameboardFactory = () => {
     return orientation;
   };
 
-  const addShip = ship => {
-    for (let cell of ship.cells) {
-      if (cell > cells.length) return 'Invalid position.';
-      if (cells[cell] !== -1) return 'Invalid position.';
+  const canPlaceShip = shipCells => {
+    let row = Math.floor(shipCells[0] / 10);
+
+    for (const cell of shipCells) {
+      if (cell > cells.length) return false;
+      if (cells[cell] !== -1) return false;
+      if (orientation === 'horizontal' && Math.floor(cell / 10) !== row) return false;
     }
 
+    return true;
+  };
+
+  const addShip = ship => {
+    if (!canPlaceShip(ship.cells)) return 'Invalid position.';
     ships.push(ship);
     ship.cells.forEach(cell => cells[cell] = ships.length - 1);
     return ship.cells.map(cell => cells[cell]);
@@ -255,7 +270,8 @@ const gameboardFactory = () => {
     switchOrientation,
     getCells,
     addShip,
-    receiveAttack
+    receiveAttack,
+    canPlaceShip
   };
 };
 
@@ -918,6 +934,7 @@ const game = (() => {
   _UI__WEBPACK_IMPORTED_MODULE_3__["default"].renderGameboard(playerGameboard.getCells(), players[0].name);
   _UI__WEBPACK_IMPORTED_MODULE_3__["default"].renderGameboard(computerGameboard.getCells(), players[1].name);
   _DOMEvents__WEBPACK_IMPORTED_MODULE_4__["default"].addCellEvent(playerGameboard);
+  _DOMEvents__WEBPACK_IMPORTED_MODULE_4__["default"].addSwitchEvent(playerGameboard);
   _UI__WEBPACK_IMPORTED_MODULE_3__["default"].showShipyard();
 })();
 })();

@@ -17,11 +17,14 @@ const DOMEvents = (() => {
     UI.showShipyard();
   };
 
-  switchOrientation.onclick = function () {
-    if (orientation === 'horizontal') orientation = 'vertical';
-    else orientation = 'horizontal';
+  const addSwitchEvent = (gameboard) => {
+    switchOrientation.onclick = function () {
+      if (orientation === 'horizontal') orientation = 'vertical';
+      else orientation = 'horizontal';
 
-    document.querySelector('#orientation').textContent = orientation;
+      gameboard.switchOrientation();
+      document.querySelector('#orientation').textContent = orientation;
+    };
   };
 
   const addCellEvent = (gameboard) => {
@@ -75,16 +78,18 @@ const DOMEvents = (() => {
             orientation
           );
 
-          gameboard.addShip(ship);
-          lastHover = [];
-          UI.updateShipyard(currentShipType);
-          currentShipType++;
+          let msg = gameboard.addShip(ship);
+          if (msg !== 'Invalid position.') {
+            UI.updateShipyard(currentShipType);
+            lastHover = [];
+            currentShipType++;
+          }
         }
       };
     });
   };
 
-  return { addCellEvent };
+  return { addCellEvent, addSwitchEvent };
 })();
 
 export default DOMEvents;
