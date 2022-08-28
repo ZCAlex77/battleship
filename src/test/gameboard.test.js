@@ -29,9 +29,11 @@ describe('Gameboard', () => {
     expect(gameboard.addShip(dummyShip)).toEqual([0, 0, 0]);
   });
 
-  test("doesn't add ship if not enough cells", () => {
-    dummyShip.cells = [98, 99, 100];
-    expect(gameboard.addShip(dummyShip)).toBe('Invalid position.');
+  test('checks if the ship can be placed correctly', () => {
+    dummyShip.cells = [29, 30, 31];
+    expect(gameboard.canPlaceShip(dummyShip.cells)).toBe(false);
+    dummyShip.cells = [24, 25, 26];
+    expect(gameboard.canPlaceShip(dummyShip.cells)).toBe(true);
   });
 
   test('receives attack on ship', () => {

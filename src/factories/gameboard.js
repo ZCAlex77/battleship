@@ -11,11 +11,20 @@ const gameboardFactory = () => {
     return orientation;
   };
 
-  const addShip = (ship) => {
-    for (let cell of ship.cells) {
-      if (cell > cells.length) return 'Invalid position.';
-      if (cells[cell] !== -1) return 'Invalid position.';
+  const canPlaceShip = (shipCells) => {
+    let row = Math.floor(shipCells[0] / 10);
+
+    for (const cell of shipCells) {
+      if (cell > cells.length) return false;
+      if (cells[cell] !== -1) return false;
+      if (Math.floor(cell / 10) !== row) return false;
     }
+
+    return true;
+  };
+
+  const addShip = (ship) => {
+    if (!canPlaceShip(ship.cells)) return 'Invalid position.';
 
     ships.push(ship);
     ship.cells.forEach((cell) => (cells[cell] = ships.length - 1));
@@ -38,7 +47,7 @@ const gameboardFactory = () => {
     return msg;
   };
 
-  return { switchOrientation, getCells, addShip, receiveAttack };
+  return { switchOrientation, getCells, addShip, receiveAttack, canPlaceShip };
 };
 
 export default gameboardFactory;
