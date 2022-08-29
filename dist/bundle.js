@@ -14,12 +14,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _factories_battleship__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./factories/battleship */ "./src/factories/battleship.js");
 /* harmony import */ var _UI__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./UI */ "./src/UI.js");
+/* harmony import */ var _index__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./index */ "./src/index.js");
+
 
 
 
 const DOMEvents = (() => {
   const changeName = document.querySelector('#change-name'),
-        switchOrientation = document.querySelector('#switch-orientation');
+        switchOrientation = document.querySelector('#switch-orientation'),
+        startGame = document.querySelector('#start-game');
   const shipTypes = ['xxxxx', 'xxxx', 'xxx', 'xxx', 'xx'];
   let currentShipType = 0;
   let orientation = 'horizontal';
@@ -33,15 +36,21 @@ const DOMEvents = (() => {
     _UI__WEBPACK_IMPORTED_MODULE_1__["default"].showShipyard();
   };
 
-  const addSwitchEvent = gameboard => {
+  startGame.onclick = function () {
+    _index__WEBPACK_IMPORTED_MODULE_2__["default"].startGame();
+    _UI__WEBPACK_IMPORTED_MODULE_1__["default"].showGameStats();
+    addOpponentCellEvent();
+  };
+
+  const addSwitchEvent = () => {
     switchOrientation.onclick = function () {
       if (orientation === 'horizontal') orientation = 'vertical';else orientation = 'horizontal';
-      gameboard.switchOrientation();
+      _index__WEBPACK_IMPORTED_MODULE_2__["default"].playerGameboard.switchOrientation();
       document.querySelector('#orientation').textContent = orientation;
     };
   };
 
-  const addCellEvent = gameboard => {
+  const addCellEvent = () => {
     const cells = document.querySelector('#player-gameboard').querySelectorAll('.cell');
     cells.forEach(cell => {
       cell.onmouseenter = function () {
@@ -70,7 +79,7 @@ const DOMEvents = (() => {
           if (!currentHover.every(cell => Math.floor(cell / 10) === row)) ok = false;
         }
 
-        if (!currentHover.every(cell => gameboard.getCells()[cell] === -1)) ok = false;
+        if (!currentHover.every(cell => _index__WEBPACK_IMPORTED_MODULE_2__["default"].playerGameboard.getCells()[cell] === -1)) ok = false;
 
         if (currentHover.every(cell => cell < 100) && ok) {
           currentHover.forEach(cell => {
@@ -83,7 +92,7 @@ const DOMEvents = (() => {
       cell.onclick = () => {
         if (currentShipType < shipTypes.length) {
           let ship = (0,_factories_battleship__WEBPACK_IMPORTED_MODULE_0__["default"])(shipTypes[currentShipType].length, currentHover[0], orientation);
-          let msg = gameboard.addShip(ship);
+          let msg = _index__WEBPACK_IMPORTED_MODULE_2__["default"].playerGameboard.addShip(ship);
 
           if (msg !== 'Invalid position.') {
             _UI__WEBPACK_IMPORTED_MODULE_1__["default"].updateShipyard(currentShipType);
@@ -91,6 +100,20 @@ const DOMEvents = (() => {
             currentShipType++;
           }
         }
+
+        if (currentShipType === shipTypes.length) {
+          _UI__WEBPACK_IMPORTED_MODULE_1__["default"].showStartButton();
+        }
+      };
+    });
+  };
+
+  const addOpponentCellEvent = () => {
+    const cells = document.querySelector('#computer-gameboard').querySelectorAll('.cell');
+    cells.forEach(cell => {
+      cell.onclick = function () {
+        let attackedCell = this;
+        _index__WEBPACK_IMPORTED_MODULE_2__["default"].playRound(0, attackedCell);
       };
     });
   };
@@ -128,8 +151,22 @@ const UI = (() => {
     document.querySelector(`[data-index="${cell}"]`).style.background = colors[color];
   };
 
+  const updateCellAfterAttack = (cell, outcome) => {
+    let marker = outcome === 'Hit water.' ? '&#x25CF' : 'X';
+    cell.innerHTML = `<p>${marker}</p>`;
+  };
+
   const showShipyard = () => {
     document.querySelector('#shipyard').style.display = 'block';
+  };
+
+  const showGameStats = () => {
+    document.querySelector('#shipyard').style.display = 'none';
+    document.querySelector('#game-stats').style.display = 'block';
+  };
+
+  const showStartButton = () => {
+    document.querySelector('#start-game').style.display = 'block';
   };
 
   const updateShipyard = currentShip => {
@@ -144,6 +181,10 @@ const UI = (() => {
     shipTypes[currentShip].querySelector('p').textContent = `${numberOfShips}x`;
   };
 
+  const updateTurn = name => {
+    document.querySelector('#attacker').textContent = name;
+  };
+
   const renderGameboard = (cells, name) => {
     let container = document.createElement('div');
     container.className = 'gameboard';
@@ -152,7 +193,7 @@ const UI = (() => {
     for (let i = 0; i < cells.length; i++) {
       let cell = document.createElement('div');
       cell.className = 'cell';
-      if (name === 'Player') cell.setAttribute('data-index', i);
+      cell.setAttribute('data-index', i);
       container.appendChild(cell);
     }
 
@@ -167,7 +208,11 @@ const UI = (() => {
     updateCellColor,
     renderGameboard,
     showShipyard,
-    updateShipyard
+    showGameStats,
+    showStartButton,
+    updateShipyard,
+    updateTurn,
+    updateCellAfterAttack
   };
 })();
 
@@ -290,20 +335,105 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 const playerFactory = name => {
-  let turn = true;
+  let turn = name === 'Computer' ? false : true;
 
   const switchTurn = () => {
     turn = !turn;
     return turn;
   };
 
+  const getTurn = () => turn;
+
   return {
     name,
-    switchTurn
+    switchTurn,
+    getTurn
   };
 };
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (playerFactory);
+
+/***/ }),
+
+/***/ "./src/index.js":
+/*!**********************!*\
+  !*** ./src/index.js ***!
+  \**********************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _style_index_scss__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./style/index.scss */ "./src/style/index.scss");
+/* harmony import */ var _factories_player__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./factories/player */ "./src/factories/player.js");
+/* harmony import */ var _factories_gameboard__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./factories/gameboard */ "./src/factories/gameboard.js");
+/* harmony import */ var _UI__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./UI */ "./src/UI.js");
+/* harmony import */ var _DOMEvents__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./DOMEvents */ "./src/DOMEvents.js");
+
+
+
+
+
+
+const game = (() => {
+  // initialize players and gameboards
+  let players = [(0,_factories_player__WEBPACK_IMPORTED_MODULE_1__["default"])('Player'), (0,_factories_player__WEBPACK_IMPORTED_MODULE_1__["default"])('Computer')];
+  let playerGameboard = (0,_factories_gameboard__WEBPACK_IMPORTED_MODULE_2__["default"])(),
+      computerGameboard = (0,_factories_gameboard__WEBPACK_IMPORTED_MODULE_2__["default"])();
+  let running = false;
+
+  const isGameRunning = () => running;
+
+  const startGame = () => {
+    running = true;
+  };
+
+  const generateRandomAttack = cells => {
+    let unhitPositions = cells.map((cell, index) => index).filter(cell => cells[cell] !== 'hit');
+    return unhitPositions[Math.floor(Math.random() * unhitPositions.length)];
+  };
+
+  const playRound = (attacker, attackedCell) => {
+    // check if the game is running and if it's this player's turn
+    if (!isGameRunning() || !players[attacker].getTurn()) return;
+    let attackedGameboard = attacker === 0 ? computerGameboard : playerGameboard; // attempt attack
+
+    let msg = attackedGameboard.receiveAttack(Number(attackedCell.getAttribute('data-index'))); // check if the position was already hit
+
+    if (msg === 'Already hit.') return;
+    _UI__WEBPACK_IMPORTED_MODULE_3__["default"].updateCellAfterAttack(attackedCell, msg);
+    _UI__WEBPACK_IMPORTED_MODULE_3__["default"].updateTurn(game.players[1 - attacker].name);
+    players[attacker].switchTurn();
+    players[1 - attacker].switchTurn(); // let computer attack
+
+    if (attacker === 1) return;
+    setTimeout(() => {
+      let index = generateRandomAttack(playerGameboard.getCells());
+      let cellElement = document.querySelector('#player-gameboard').querySelector(`[data-index="${index}"]`);
+      playRound(1, cellElement);
+    }, 1000);
+  };
+
+  const setup = (() => {
+    _UI__WEBPACK_IMPORTED_MODULE_3__["default"].renderGameboard(playerGameboard.getCells(), players[0].name);
+    _UI__WEBPACK_IMPORTED_MODULE_3__["default"].renderGameboard(computerGameboard.getCells(), players[1].name);
+    _UI__WEBPACK_IMPORTED_MODULE_3__["default"].updateTurn(players[0].name);
+    _DOMEvents__WEBPACK_IMPORTED_MODULE_4__["default"].addCellEvent();
+    _DOMEvents__WEBPACK_IMPORTED_MODULE_4__["default"].addSwitchEvent();
+    _UI__WEBPACK_IMPORTED_MODULE_3__["default"].showShipyard();
+  })();
+
+  return {
+    players,
+    playerGameboard,
+    computerGameboard,
+    startGame,
+    playRound
+  };
+})();
+
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (game);
 
 /***/ }),
 
@@ -327,7 +457,7 @@ __webpack_require__.r(__webpack_exports__);
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_sourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
 ___CSS_LOADER_EXPORT___.push([module.id, "@import url(https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap);"]);
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "html {\n  font-family: \"Bebas Neue\", cursive;\n}\n\n* {\n  margin: 0;\n  padding: 0;\n  box-sizing: border-box;\n  color: inherit;\n}\n\nbody {\n  background: hsl(187deg, 40%, 34%);\n}\n\n#game {\n  width: 100%;\n  height: 100vh;\n  display: grid;\n  grid-template-columns: 32px 1fr 16px 0.5fr 16px 1fr 32px;\n  grid-template-rows: 64px 1fr 32px;\n}\n\nheader {\n  display: flex;\n  align-items: center;\n  grid-area: 1/3/span 1/span 3;\n  background: hsl(187deg, 40%, 50%);\n  align-self: center;\n}\nheader h1 {\n  color: hsl(187deg, 40%, 10%);\n  font-size: 2rem;\n  text-align: center;\n  width: 100%;\n  letter-spacing: 2px;\n}\n\n#menu {\n  grid-area: 2/4/span 1/span 1;\n  background: hsl(187deg, 40%, 10%);\n  color: hsl(187deg, 40%, 50%);\n  padding: 16px;\n}\n#menu input[type=button],\n#menu button {\n  background: hsl(187deg, 40%, 50%);\n  color: hsl(187deg, 40%, 10%);\n  border: 0;\n  cursor: pointer;\n  border-radius: 999px;\n  font-size: 1.2rem;\n  padding: 5px 10px;\n  width: 100%;\n  text-align: center;\n  margin-bottom: 20px;\n}\n#menu form {\n  display: none;\n}\n#menu form label {\n  font-size: 1.4rem;\n  text-align: center;\n  display: block;\n  margin-bottom: 32px;\n}\n#menu form input {\n  border: 0;\n  font-size: 1.2rem;\n  padding: 4px;\n  margin-bottom: 16px;\n}\n#menu form input[type=text] {\n  background: #fff;\n  color: hsl(187deg, 40%, 10%);\n  width: 100%;\n  text-align: center;\n}\n\n#shipyard {\n  display: none;\n}\n#shipyard h2 {\n  font-weight: normal;\n  text-align: center;\n  margin-bottom: 32px;\n}\n#shipyard .active-ship {\n  border: 2px solid hsl(187deg, 40%, 50%);\n}\n#shipyard .ship {\n  padding: 2px 10px;\n  width: 100%;\n  height: 50px;\n  display: grid;\n  grid-template-columns: 4ch repeat(5, 1fr);\n  margin-bottom: 20px;\n  gap: 2px;\n}\n#shipyard .ship p {\n  place-self: center;\n  font-size: 1.5rem;\n}\n#shipyard .ship span {\n  aspect-ratio: 1/1;\n  background: hsl(187deg, 40%, 50%);\n  align-self: center;\n}\n\n.name {\n  grid-row: 1/span 1;\n  grid-column: 2/span 1;\n  align-self: center;\n  background: hsl(187deg, 40%, 10%);\n  color: hsl(187deg, 40%, 50%);\n  justify-self: stretch;\n  padding: 0 10px;\n}\n\n.name:last-of-type {\n  grid-column: 6/span 1;\n  text-align: right;\n}\n\n.gameboard {\n  display: grid;\n  grid-template: repeat(10, 1fr)/repeat(10, 1fr);\n  gap: 2px;\n  aspect-ratio: 1/1;\n  grid-row: 2/span 1;\n  align-self: center;\n}\n.gameboard .cell {\n  border: 1px solid hsl(187deg, 40%, 10%);\n  cursor: pointer;\n}\n\n#player-gameboard {\n  grid-column: 2/span 1;\n}\n\n#computer-gameboard {\n  grid-column: 6/span 1;\n}", "",{"version":3,"sources":["webpack://./src/style/index.scss"],"names":[],"mappings":"AAEA;EACE,kCAAA;AAAF;;AAGA;EACE,SAAA;EACA,UAAA;EACA,sBAAA;EACA,cAAA;AAAF;;AAOA;EACE,iCAJU;AAAZ;;AAOA;EACE,WAAA;EACA,aAAA;EACA,aAAA;EACA,wDAAA;EACA,iCAAA;AAJF;;AAOA;EACE,aAAA;EACA,mBAAA;EACA,4BAAA;EACA,iCAlBW;EAmBX,kBAAA;AAJF;AAME;EACE,4BAxBU;EAyBV,eAAA;EACA,kBAAA;EACA,WAAA;EACA,mBAAA;AAJJ;;AAQA;EACE,4BAAA;EACA,iCAlCY;EAmCZ,4BAjCW;EAkCX,aAAA;AALF;AAOE;;EAEE,iCAtCS;EAuCT,4BAzCU;EA0CV,SAAA;EACA,eAAA;EACA,oBAAA;EACA,iBAAA;EACA,iBAAA;EACA,WAAA;EACA,kBAAA;EACA,mBAAA;AALJ;AAQE;EACE,aAAA;AANJ;AAQI;EACE,iBAAA;EACA,kBAAA;EACA,cAAA;EACA,mBAAA;AANN;AAQI;EACE,SAAA;EACA,iBAAA;EACA,YAAA;EACA,mBAAA;AANN;AAQI;EACE,gBAAA;EACA,4BArEQ;EAsER,WAAA;EACA,kBAAA;AANN;;AAWA;EACE,aAAA;AARF;AAUE;EACE,mBAAA;EACA,kBAAA;EACA,mBAAA;AARJ;AAWE;EACE,uCAAA;AATJ;AAYE;EACE,iBAAA;EACA,WAAA;EACA,YAAA;EACA,aAAA;EACA,yCAAA;EACA,mBAAA;EACA,QAAA;AAVJ;AAYI;EACE,kBAAA;EACA,iBAAA;AAVN;AAaI;EACE,iBAAA;EACA,iCAvGO;EAwGP,kBAAA;AAXN;;AAgBA;EACE,kBAAA;EACA,qBAAA;EACA,kBAAA;EACA,iCAnHY;EAoHZ,4BAlHW;EAmHX,qBAAA;EACA,eAAA;AAbF;;AAgBA;EACE,qBAAA;EACA,iBAAA;AAbF;;AAgBA;EACE,aAAA;EACA,8CAAA;EACA,QAAA;EACA,iBAAA;EACA,kBAAA;EACA,kBAAA;AAbF;AAeE;EACE,uCAAA;EACA,eAAA;AAbJ;;AAiBA;EACE,qBAAA;AAdF;;AAiBA;EACE,qBAAA;AAdF","sourcesContent":["@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');\r\n\r\nhtml {\r\n  font-family: 'Bebas Neue', cursive;\r\n}\r\n\r\n* {\r\n  margin: 0;\r\n  padding: 0;\r\n  box-sizing: border-box;\r\n  color: inherit;\r\n}\r\n\r\n$darker-cyan: hsl(187, 40%, 10%);\r\n$dark-cyan: hsl(187, 40%, 34%);\r\n$light-cyan: hsl(187, 40%, 50%);\r\n\r\nbody {\r\n  background: $dark-cyan;\r\n}\r\n\r\n#game {\r\n  width: 100%;\r\n  height: 100vh;\r\n  display: grid;\r\n  grid-template-columns: 32px 1fr 16px 0.5fr 16px 1fr 32px;\r\n  grid-template-rows: 64px 1fr 32px;\r\n}\r\n\r\nheader {\r\n  display: flex;\r\n  align-items: center;\r\n  grid-area: 1 / 3 / span 1 / span 3;\r\n  background: $light-cyan;\r\n  align-self: center;\r\n\r\n  h1 {\r\n    color: $darker-cyan;\r\n    font-size: 2rem;\r\n    text-align: center;\r\n    width: 100%;\r\n    letter-spacing: 2px;\r\n  }\r\n}\r\n\r\n#menu {\r\n  grid-area: 2 / 4 / span 1 / span 1;\r\n  background: $darker-cyan;\r\n  color: $light-cyan;\r\n  padding: 16px;\r\n\r\n  input[type='button'],\r\n  button {\r\n    background: $light-cyan;\r\n    color: $darker-cyan;\r\n    border: 0;\r\n    cursor: pointer;\r\n    border-radius: 999px;\r\n    font-size: 1.2rem;\r\n    padding: 5px 10px;\r\n    width: 100%;\r\n    text-align: center;\r\n    margin-bottom: 20px;\r\n  }\r\n\r\n  form {\r\n    display: none;\r\n\r\n    label {\r\n      font-size: 1.4rem;\r\n      text-align: center;\r\n      display: block;\r\n      margin-bottom: 32px;\r\n    }\r\n    input {\r\n      border: 0;\r\n      font-size: 1.2rem;\r\n      padding: 4px;\r\n      margin-bottom: 16px;\r\n    }\r\n    input[type='text'] {\r\n      background: #fff;\r\n      color: $darker-cyan;\r\n      width: 100%;\r\n      text-align: center;\r\n    }\r\n  }\r\n}\r\n\r\n#shipyard {\r\n  display: none;\r\n\r\n  h2 {\r\n    font-weight: normal;\r\n    text-align: center;\r\n    margin-bottom: 32px;\r\n  }\r\n\r\n  .active-ship {\r\n    border: 2px solid $light-cyan;\r\n  }\r\n\r\n  .ship {\r\n    padding: 2px 10px;\r\n    width: 100%;\r\n    height: 50px;\r\n    display: grid;\r\n    grid-template-columns: 4ch repeat(5, 1fr);\r\n    margin-bottom: 20px;\r\n    gap: 2px;\r\n\r\n    p {\r\n      place-self: center;\r\n      font-size: 1.5rem;\r\n    }\r\n\r\n    span {\r\n      aspect-ratio: 1/1;\r\n      background: $light-cyan;\r\n      align-self: center;\r\n    }\r\n  }\r\n}\r\n\r\n.name {\r\n  grid-row: 1 / span 1;\r\n  grid-column: 2 / span 1;\r\n  align-self: center;\r\n  background: $darker-cyan;\r\n  color: $light-cyan;\r\n  justify-self: stretch;\r\n  padding: 0 10px;\r\n}\r\n\r\n.name:last-of-type {\r\n  grid-column: 6 / span 1;\r\n  text-align: right;\r\n}\r\n\r\n.gameboard {\r\n  display: grid;\r\n  grid-template: repeat(10, 1fr) / repeat(10, 1fr);\r\n  gap: 2px;\r\n  aspect-ratio: 1/1;\r\n  grid-row: 2 / span 1;\r\n  align-self: center;\r\n\r\n  .cell {\r\n    border: 1px solid $darker-cyan;\r\n    cursor: pointer;\r\n  }\r\n}\r\n\r\n#player-gameboard {\r\n  grid-column: 2 / span 1;\r\n}\r\n\r\n#computer-gameboard {\r\n  grid-column: 6 / span 1;\r\n}\r\n"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, "html {\n  font-family: \"Bebas Neue\", cursive;\n}\n\n* {\n  margin: 0;\n  padding: 0;\n  box-sizing: border-box;\n  color: inherit;\n}\n\nbody {\n  background: hsl(187deg, 40%, 34%);\n}\n\n#game {\n  width: 100%;\n  height: 100vh;\n  display: grid;\n  grid-template-columns: 32px 1fr 16px 0.5fr 16px 1fr 32px;\n  grid-template-rows: 64px 1fr 32px;\n}\n\nheader {\n  display: flex;\n  align-items: center;\n  grid-area: 1/3/span 1/span 3;\n  background: hsl(187deg, 40%, 50%);\n  align-self: center;\n}\nheader h1 {\n  color: hsl(187deg, 40%, 10%);\n  font-size: 2rem;\n  text-align: center;\n  width: 100%;\n  letter-spacing: 2px;\n}\n\n#menu {\n  grid-area: 2/4/span 1/span 1;\n  background: hsl(187deg, 40%, 10%);\n  color: hsl(187deg, 40%, 50%);\n  padding: 16px;\n}\n#menu h2 {\n  font-weight: normal;\n  text-align: center;\n  margin-bottom: 32px;\n}\n#menu input[type=button],\n#menu button {\n  background: hsl(187deg, 40%, 50%);\n  color: hsl(187deg, 40%, 10%);\n  border: 0;\n  cursor: pointer;\n  border-radius: 999px;\n  font-size: 1.2rem;\n  padding: 5px 10px;\n  width: 100%;\n  text-align: center;\n  margin-bottom: 20px;\n}\n#menu form {\n  display: none;\n}\n#menu form label {\n  font-size: 1.4rem;\n  text-align: center;\n  display: block;\n  margin-bottom: 32px;\n}\n#menu form input {\n  border: 0;\n  font-size: 1.2rem;\n  padding: 4px;\n  margin-bottom: 16px;\n}\n#menu form input[type=text] {\n  background: #fff;\n  color: hsl(187deg, 40%, 10%);\n  width: 100%;\n  text-align: center;\n}\n\n#shipyard {\n  display: none;\n}\n#shipyard .active-ship {\n  border: 2px solid hsl(187deg, 40%, 50%);\n}\n#shipyard .ship {\n  padding: 2px 10px;\n  width: 100%;\n  height: 50px;\n  display: grid;\n  grid-template-columns: 4ch repeat(5, 1fr);\n  margin-bottom: 20px;\n  gap: 2px;\n}\n#shipyard .ship p {\n  place-self: center;\n  font-size: 1.5rem;\n}\n#shipyard .ship span {\n  aspect-ratio: 1/1;\n  background: hsl(187deg, 40%, 50%);\n  align-self: center;\n}\n\n.name {\n  grid-row: 1/span 1;\n  grid-column: 2/span 1;\n  align-self: center;\n  background: hsl(187deg, 40%, 10%);\n  color: hsl(187deg, 40%, 50%);\n  justify-self: stretch;\n  padding: 0 10px;\n}\n\n.name:last-of-type {\n  grid-column: 6/span 1;\n  text-align: right;\n}\n\n.gameboard {\n  display: grid;\n  grid-template: repeat(10, 1fr)/repeat(10, 1fr);\n  gap: 2px;\n  aspect-ratio: 1/1;\n  grid-row: 2/span 1;\n  align-self: center;\n}\n.gameboard .cell {\n  border: 1px solid hsl(187deg, 40%, 10%);\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.gameboard .cell p {\n  font-size: 2rem;\n  color: #f00;\n}\n\n#player-gameboard {\n  grid-column: 2/span 1;\n}\n\n#computer-gameboard {\n  grid-column: 6/span 1;\n}\n\n#start-game {\n  display: none;\n}\n\n#game-stats {\n  display: none;\n}", "",{"version":3,"sources":["webpack://./src/style/index.scss"],"names":[],"mappings":"AAEA;EACE,kCAAA;AAAF;;AAGA;EACE,SAAA;EACA,UAAA;EACA,sBAAA;EACA,cAAA;AAAF;;AAOA;EACE,iCAJU;AAAZ;;AAOA;EACE,WAAA;EACA,aAAA;EACA,aAAA;EACA,wDAAA;EACA,iCAAA;AAJF;;AAOA;EACE,aAAA;EACA,mBAAA;EACA,4BAAA;EACA,iCAlBW;EAmBX,kBAAA;AAJF;AAME;EACE,4BAxBU;EAyBV,eAAA;EACA,kBAAA;EACA,WAAA;EACA,mBAAA;AAJJ;;AAQA;EACE,4BAAA;EACA,iCAlCY;EAmCZ,4BAjCW;EAkCX,aAAA;AALF;AAOE;EACE,mBAAA;EACA,kBAAA;EACA,mBAAA;AALJ;AAQE;;EAEE,iCA5CS;EA6CT,4BA/CU;EAgDV,SAAA;EACA,eAAA;EACA,oBAAA;EACA,iBAAA;EACA,iBAAA;EACA,WAAA;EACA,kBAAA;EACA,mBAAA;AANJ;AASE;EACE,aAAA;AAPJ;AASI;EACE,iBAAA;EACA,kBAAA;EACA,cAAA;EACA,mBAAA;AAPN;AASI;EACE,SAAA;EACA,iBAAA;EACA,YAAA;EACA,mBAAA;AAPN;AASI;EACE,gBAAA;EACA,4BA3EQ;EA4ER,WAAA;EACA,kBAAA;AAPN;;AAYA;EACE,aAAA;AATF;AAWE;EACE,uCAAA;AATJ;AAYE;EACE,iBAAA;EACA,WAAA;EACA,YAAA;EACA,aAAA;EACA,yCAAA;EACA,mBAAA;EACA,QAAA;AAVJ;AAYI;EACE,kBAAA;EACA,iBAAA;AAVN;AAaI;EACE,iBAAA;EACA,iCAvGO;EAwGP,kBAAA;AAXN;;AAgBA;EACE,kBAAA;EACA,qBAAA;EACA,kBAAA;EACA,iCAnHY;EAoHZ,4BAlHW;EAmHX,qBAAA;EACA,eAAA;AAbF;;AAgBA;EACE,qBAAA;EACA,iBAAA;AAbF;;AAgBA;EACE,aAAA;EACA,8CAAA;EACA,QAAA;EACA,iBAAA;EACA,kBAAA;EACA,kBAAA;AAbF;AAeE;EACE,uCAAA;EACA,eAAA;EACA,aAAA;EACA,mBAAA;EACA,uBAAA;AAbJ;AAeI;EACE,eAAA;EACA,WAAA;AAbN;;AAkBA;EACE,qBAAA;AAfF;;AAkBA;EACE,qBAAA;AAfF;;AAkBA;EACE,aAAA;AAfF;;AAkBA;EACE,aAAA;AAfF","sourcesContent":["@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');\r\n\r\nhtml {\r\n  font-family: 'Bebas Neue', cursive;\r\n}\r\n\r\n* {\r\n  margin: 0;\r\n  padding: 0;\r\n  box-sizing: border-box;\r\n  color: inherit;\r\n}\r\n\r\n$darker-cyan: hsl(187, 40%, 10%);\r\n$dark-cyan: hsl(187, 40%, 34%);\r\n$light-cyan: hsl(187, 40%, 50%);\r\n\r\nbody {\r\n  background: $dark-cyan;\r\n}\r\n\r\n#game {\r\n  width: 100%;\r\n  height: 100vh;\r\n  display: grid;\r\n  grid-template-columns: 32px 1fr 16px 0.5fr 16px 1fr 32px;\r\n  grid-template-rows: 64px 1fr 32px;\r\n}\r\n\r\nheader {\r\n  display: flex;\r\n  align-items: center;\r\n  grid-area: 1 / 3 / span 1 / span 3;\r\n  background: $light-cyan;\r\n  align-self: center;\r\n\r\n  h1 {\r\n    color: $darker-cyan;\r\n    font-size: 2rem;\r\n    text-align: center;\r\n    width: 100%;\r\n    letter-spacing: 2px;\r\n  }\r\n}\r\n\r\n#menu {\r\n  grid-area: 2 / 4 / span 1 / span 1;\r\n  background: $darker-cyan;\r\n  color: $light-cyan;\r\n  padding: 16px;\r\n\r\n  h2 {\r\n    font-weight: normal;\r\n    text-align: center;\r\n    margin-bottom: 32px;\r\n  }\r\n\r\n  input[type='button'],\r\n  button {\r\n    background: $light-cyan;\r\n    color: $darker-cyan;\r\n    border: 0;\r\n    cursor: pointer;\r\n    border-radius: 999px;\r\n    font-size: 1.2rem;\r\n    padding: 5px 10px;\r\n    width: 100%;\r\n    text-align: center;\r\n    margin-bottom: 20px;\r\n  }\r\n\r\n  form {\r\n    display: none;\r\n\r\n    label {\r\n      font-size: 1.4rem;\r\n      text-align: center;\r\n      display: block;\r\n      margin-bottom: 32px;\r\n    }\r\n    input {\r\n      border: 0;\r\n      font-size: 1.2rem;\r\n      padding: 4px;\r\n      margin-bottom: 16px;\r\n    }\r\n    input[type='text'] {\r\n      background: #fff;\r\n      color: $darker-cyan;\r\n      width: 100%;\r\n      text-align: center;\r\n    }\r\n  }\r\n}\r\n\r\n#shipyard {\r\n  display: none;\r\n\r\n  .active-ship {\r\n    border: 2px solid $light-cyan;\r\n  }\r\n\r\n  .ship {\r\n    padding: 2px 10px;\r\n    width: 100%;\r\n    height: 50px;\r\n    display: grid;\r\n    grid-template-columns: 4ch repeat(5, 1fr);\r\n    margin-bottom: 20px;\r\n    gap: 2px;\r\n\r\n    p {\r\n      place-self: center;\r\n      font-size: 1.5rem;\r\n    }\r\n\r\n    span {\r\n      aspect-ratio: 1/1;\r\n      background: $light-cyan;\r\n      align-self: center;\r\n    }\r\n  }\r\n}\r\n\r\n.name {\r\n  grid-row: 1 / span 1;\r\n  grid-column: 2 / span 1;\r\n  align-self: center;\r\n  background: $darker-cyan;\r\n  color: $light-cyan;\r\n  justify-self: stretch;\r\n  padding: 0 10px;\r\n}\r\n\r\n.name:last-of-type {\r\n  grid-column: 6 / span 1;\r\n  text-align: right;\r\n}\r\n\r\n.gameboard {\r\n  display: grid;\r\n  grid-template: repeat(10, 1fr) / repeat(10, 1fr);\r\n  gap: 2px;\r\n  aspect-ratio: 1/1;\r\n  grid-row: 2 / span 1;\r\n  align-self: center;\r\n\r\n  .cell {\r\n    border: 1px solid $darker-cyan;\r\n    cursor: pointer;\r\n    display: flex;\r\n    align-items: center;\r\n    justify-content: center;\r\n\r\n    p {\r\n      font-size: 2rem;\r\n      color: #f00;\r\n    }\r\n  }\r\n}\r\n\r\n#player-gameboard {\r\n  grid-column: 2 / span 1;\r\n}\r\n\r\n#computer-gameboard {\r\n  grid-column: 6 / span 1;\r\n}\r\n\r\n#start-game {\r\n  display: none;\r\n}\r\n\r\n#game-stats {\r\n  display: none;\r\n}\r\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -909,36 +1039,12 @@ module.exports = styleTagTransform;
 /******/ 	})();
 /******/ 	
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
-(() => {
-/*!**********************!*\
-  !*** ./src/index.js ***!
-  \**********************/
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _style_index_scss__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./style/index.scss */ "./src/style/index.scss");
-/* harmony import */ var _factories_player__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./factories/player */ "./src/factories/player.js");
-/* harmony import */ var _factories_gameboard__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./factories/gameboard */ "./src/factories/gameboard.js");
-/* harmony import */ var _UI__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./UI */ "./src/UI.js");
-/* harmony import */ var _DOMEvents__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./DOMEvents */ "./src/DOMEvents.js");
-
-
-
-
-
-
-const game = (() => {
-  let players = [(0,_factories_player__WEBPACK_IMPORTED_MODULE_1__["default"])('Player'), (0,_factories_player__WEBPACK_IMPORTED_MODULE_1__["default"])('Computer')];
-  let playerGameboard = (0,_factories_gameboard__WEBPACK_IMPORTED_MODULE_2__["default"])(),
-      computerGameboard = (0,_factories_gameboard__WEBPACK_IMPORTED_MODULE_2__["default"])();
-  _UI__WEBPACK_IMPORTED_MODULE_3__["default"].renderGameboard(playerGameboard.getCells(), players[0].name);
-  _UI__WEBPACK_IMPORTED_MODULE_3__["default"].renderGameboard(computerGameboard.getCells(), players[1].name);
-  _DOMEvents__WEBPACK_IMPORTED_MODULE_4__["default"].addCellEvent(playerGameboard);
-  _DOMEvents__WEBPACK_IMPORTED_MODULE_4__["default"].addSwitchEvent(playerGameboard);
-  _UI__WEBPACK_IMPORTED_MODULE_3__["default"].showShipyard();
-})();
-})();
-
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	var __webpack_exports__ = __webpack_require__("./src/index.js");
+/******/ 	
 /******/ })()
 ;
 //# sourceMappingURL=bundle.js.map

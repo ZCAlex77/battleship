@@ -1,12 +1,14 @@
 const playerFactory = (name) => {
-  let turn = true;
+  let turn = name === 'Computer' ? false : true;
 
   const switchTurn = () => {
     turn = !turn;
     return turn;
   };
 
-  return { name, switchTurn };
+  const getTurn = () => turn;
+
+  return { name, switchTurn, getTurn };
 };
 
 export default playerFactory;

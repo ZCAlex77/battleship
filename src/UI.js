@@ -12,9 +12,24 @@ const UI = (() => {
       colors[color];
   };
 
+  const updateCellAfterAttack = (cell, outcome) => {
+    let marker = outcome === 'Hit water.' ? '&#x25CF' : 'X';
+    cell.innerHTML = `<p>${marker}</p>`;
+  };
+
   const showShipyard = () => {
     document.querySelector('#shipyard').style.display = 'block';
   };
+
+  const showGameStats = () => {
+    document.querySelector('#shipyard').style.display = 'none';
+    document.querySelector('#game-stats').style.display = 'block';
+  };
+
+  const showStartButton = () => {
+    document.querySelector('#start-game').style.display = 'block';
+  };
+
   const updateShipyard = (currentShip) => {
     let numberOfShips = nextNumber[currentShip];
     if (currentShip > 2) currentShip -= 1;
@@ -25,6 +40,10 @@ const UI = (() => {
     shipTypes[currentShip].querySelector('p').textContent = `${numberOfShips}x`;
   };
 
+  const updateTurn = (name) => {
+    document.querySelector('#attacker').textContent = name;
+  };
+
   const renderGameboard = (cells, name) => {
     let container = document.createElement('div');
     container.className = 'gameboard';
@@ -33,7 +52,7 @@ const UI = (() => {
     for (let i = 0; i < cells.length; i++) {
       let cell = document.createElement('div');
       cell.className = 'cell';
-      if (name === 'Player') cell.setAttribute('data-index', i);
+      cell.setAttribute('data-index', i);
       container.appendChild(cell);
     }
 
@@ -49,7 +68,11 @@ const UI = (() => {
     updateCellColor,
     renderGameboard,
     showShipyard,
+    showGameStats,
+    showStartButton,
     updateShipyard,
+    updateTurn,
+    updateCellAfterAttack,
   };
 })();
 

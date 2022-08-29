@@ -49,6 +49,12 @@ header {
   color: $light-cyan;
   padding: 16px;
 
+  h2 {
+    font-weight: normal;
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
   input[type='button'],
   button {
     background: $light-cyan;
@@ -89,12 +95,6 @@ header {
 
 #shipyard {
   display: none;
-
-  h2 {
-    font-weight: normal;
-    text-align: center;
-    margin-bottom: 32px;
-  }
 
   .active-ship {
     border: 2px solid $light-cyan;
@@ -148,6 +148,14 @@ header {
   .cell {
     border: 1px solid $darker-cyan;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    p {
+      font-size: 2rem;
+      color: #f00;
+    }
   }
 }
 
@@ -157,4 +165,12 @@ header {
 
 #computer-gameboard {
   grid-column: 6 / span 1;
+}
+
+#start-game {
+  display: none;
+}
+
+#game-stats {
+  display: none;
 }
