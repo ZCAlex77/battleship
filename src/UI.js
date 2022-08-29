@@ -8,13 +8,13 @@ const UI = (() => {
 
   const updateCellColor = (cell, color) => {
     let colors = ['hsl(187, 40%, 10%)', 'hsl(187, 40%, 34%)'];
-    document.querySelector(`[data-index="${cell}"]`).style.background =
+    document.querySelector(`[data-index="${cell}"]`).style.backgroundColor =
       colors[color];
   };
 
   const updateCellAfterAttack = (cell, outcome) => {
-    let marker = outcome === 'Hit water.' ? '&#x25CF' : 'X';
-    cell.innerHTML = `<p>${marker}</p>`;
+    let marker = outcome === 'Hit water.' ? 'miss' : 'hit';
+    cell.classList.add(marker);
   };
 
   const showShipyard = () => {

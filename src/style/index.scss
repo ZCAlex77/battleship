@@ -151,11 +151,22 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
 
     p {
       font-size: 2rem;
       color: #f00;
     }
+  }
+
+  .hit {
+    background-image: url('../assets/hit.svg');
+  }
+
+  .miss {
+    background-image: url('../assets/miss.svg');
   }
 }
 
