@@ -26,6 +26,8 @@ const game = (() => {
     return unhitPositions[Math.floor(Math.random() * unhitPositions.length)];
   };
 
+  const addOpponentShips = () => {};
+
   const playRound = (attacker, attackedCell) => {
     // check if the game is running and if it's this player's turn
     if (!isGameRunning() || !players[attacker].getTurn()) return;

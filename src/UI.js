@@ -6,10 +6,13 @@ const UI = (() => {
     document.querySelector('.name').textContent = newName;
   };
 
-  const updateCellColor = (cell, color) => {
-    let colors = ['hsl(187, 40%, 10%)', 'hsl(187, 40%, 34%)'];
-    document.querySelector(`[data-index="${cell}"]`).style.backgroundColor =
-      colors[color];
+  const highlightCells = (cells, reverse) => {
+    cells.forEach((cell) => {
+      let cellElement = document.querySelector(`[data-index="${cell}"]`);
+
+      if (!reverse) cellElement.classList.add('active');
+      else cellElement.classList.remove('active');
+    });
   };
 
   const updateCellAfterAttack = (cell, outcome) => {
@@ -65,7 +68,7 @@ const UI = (() => {
 
   return {
     updateName,
-    updateCellColor,
+    highlightCells,
     renderGameboard,
     showShipyard,
     showGameStats,

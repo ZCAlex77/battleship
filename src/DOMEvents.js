@@ -43,14 +43,11 @@ const DOMEvents = (() => {
 
     cells.forEach((cell) => {
       cell.onmouseenter = function () {
-        lastHover.forEach((cell) => {
-          UI.updateCellColor(cell, 1);
-        });
         if (currentShipType >= shipTypes.length) return;
         let index = Number(this.getAttribute('data-index'));
         let ok = true;
-        currentHover = [];
 
+        // create a ship from the inital position and orientation
         switch (orientation) {
           case 'horizontal':
             for (let i = 0; i < shipTypes[currentShipType].length; i++)
@@ -62,31 +59,46 @@ const DOMEvents = (() => {
             break;
         }
 
+        // check to see if the ship wraps on the following row
         if (orientation === 'horizontal') {
           let row = Math.floor(currentHover[0] / 10);
-          if (!currentHover.every((cell) => Math.floor(cell / 10) === row))
+          if (
+            !currentHover.every((position) => Math.floor(position / 10) === row)
+          )
             ok = false;
         }
 
+        // check to see if the cells are empty
         if (
           !currentHover.every(
-            (cell) => game.playerGameboard.getCells()[cell] === -1
+            (position) => game.playerGameboard.getCells()[position] === -1
           )
         )
           ok = false;
 
-        if (currentHover.every((cell) => cell < 100) && ok) {
-          currentHover.forEach((cell) => {
-            UI.updateCellColor(cell, 0);
-          });
+        if (currentHover.every((position) => position < 100) && ok) {
+          UI.highlightCells(currentHover, 0);
           lastHover = [...currentHover];
         }
       };
 
+      cell.onmouseleave = () => {
+        currentHover = [];
+        if (
+          lastHover.every((position) => {
+            game.playerGameboard.getCells()[position] === -1;
+          })
+        )
+          return;
+        UI.highlightCells(lastHover, 1);
+      };
+
       cell.onclick = () => {
         if (currentShipType < shipTypes.length) {
+          let shipLength = shipTypes[currentShipType].length;
+
           let ship = battleshipFactory(
-            shipTypes[currentShipType].length,
+            shipLength,
             currentHover[0],
             orientation
           );

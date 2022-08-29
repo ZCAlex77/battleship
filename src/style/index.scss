@@ -9,6 +9,7 @@ html {
   padding: 0;
   box-sizing: border-box;
   color: inherit;
+  font-family: inherit;
 }
 
 $darker-cyan: hsl(187, 40%, 10%);
@@ -167,6 +168,10 @@ header {
 
   .miss {
     background-image: url('../assets/miss.svg');
+  }
+
+  .active {
+    background-color: $darker-cyan;
   }
 }
 
