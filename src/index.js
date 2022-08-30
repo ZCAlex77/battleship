@@ -1,6 +1,7 @@
 import './style/index.scss';
 
 import playerFactory from './factories/player';
+import battleshipFactory from './factories/battleship';
 import gameboardFactory from './factories/gameboard';
 
 import UI from './UI';
@@ -17,6 +18,7 @@ const game = (() => {
 
   const startGame = () => {
     running = true;
+    addOpponentShips();
   };
 
   const generateRandomAttack = (cells) => {
@@ -26,7 +28,36 @@ const game = (() => {
     return unhitPositions[Math.floor(Math.random() * unhitPositions.length)];
   };
 
-  const addOpponentShips = () => {};
+  const addOpponentShips = () => {
+    const shipTypes = ['xxxxx', 'xxxx', 'xxx', 'xxx', 'xx'];
+
+    shipTypes.forEach((shipType) => {
+      let orientation = ['horizontal', 'vertical'][
+        Math.floor(Math.random() * 2)
+      ];
+      computerGameboard.setOrientation(orientation);
+
+      let positions = Array(100)
+        .fill(0)
+        .map((pos, i) => i);
+      // shuffle positions
+      for (let i = 0; i < positions.length; i++) {
+        let randomPos = Math.floor(Math.random() * positions.length);
+        [positions[i], positions[randomPos]] = [
+          positions[randomPos],
+          positions[i],
+        ];
+      }
+
+      for (const pos of positions) {
+        let ship = battleshipFactory(shipType.length, pos, orientation);
+        let msg = computerGameboard.addShip(ship);
+        if (msg !== 'invalid position') {
+          break;
+        }
+      }
+    });
+  };
 
   const playRound = (attacker, attackedCell) => {
     // check if the game is running and if it's this player's turn

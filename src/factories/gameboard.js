@@ -4,10 +4,8 @@ const gameboardFactory = () => {
   let orientation = 'horizontal';
 
   const getCells = () => cells;
-  const switchOrientation = () => {
-    if (orientation === 'horizontal') orientation = 'vertical';
-    else orientation = 'horizontal';
-
+  const setOrientation = (newOrientation) => {
+    orientation = newOrientation;
     return orientation;
   };
 
@@ -25,7 +23,7 @@ const gameboardFactory = () => {
   };
 
   const addShip = (ship) => {
-    if (!canPlaceShip(ship.cells)) return 'Invalid position.';
+    if (!canPlaceShip(ship.cells)) return 'invalid position';
 
     ships.push(ship);
     ship.cells.forEach((cell) => (cells[cell] = ships.length - 1));
@@ -34,21 +32,21 @@ const gameboardFactory = () => {
   };
 
   const receiveAttack = (position) => {
-    if (cells[position] === 'hit') return 'Already hit.';
+    if (cells[position] === 'hit') return 'already hit';
 
-    let msg = 'Hit water.';
+    let msg = 'misses';
     if (cells[position] !== -1) {
       ships[cells[position]].hit(
         ships[cells[position]].cells.findIndex((cell) => cell === position)
       );
-      msg = 'Hit ship.';
+      msg = 'hits a ship';
     }
 
     cells[position] = 'hit';
     return msg;
   };
 
-  return { switchOrientation, getCells, addShip, receiveAttack, canPlaceShip };
+  return { setOrientation, getCells, addShip, receiveAttack, canPlaceShip };
 };
 
 export default gameboardFactory;

@@ -20,9 +20,9 @@ describe('Gameboard', () => {
     expect(gameboard.getCells().every((cell) => cell === -1)).toBe(true);
   });
 
-  test('switch orientation', () => {
-    expect(gameboard.switchOrientation()).toBe('vertical');
-    expect(gameboard.switchOrientation()).toBe('horizontal');
+  test('sets orientation', () => {
+    expect(gameboard.setOrientation('vertical')).toBe('vertical');
+    expect(gameboard.setOrientation('horizontal')).toBe('horizontal');
   });
 
   test('successfully adds ship', () => {
@@ -38,18 +38,18 @@ describe('Gameboard', () => {
 
   test('receives attack on ship', () => {
     gameboard.addShip(dummyShip);
-    expect(gameboard.receiveAttack(56)).toBe('Hit ship.');
+    expect(gameboard.receiveAttack(56)).toBe('hits a ship');
     expect(dummyShip.hit.mock.results[0].value).toEqual([55, 'hit', 57]);
   });
 
   test('receives attack in water', () => {
-    expect(gameboard.receiveAttack(0)).toBe('Hit water.');
+    expect(gameboard.receiveAttack(0)).toBe('misses');
   });
 
   test('refuses attack if already hit', () => {
     gameboard.addShip(dummyShip);
     gameboard.receiveAttack(55);
-    expect(gameboard.receiveAttack(55)).toBe('Already hit.');
+    expect(gameboard.receiveAttack(55)).toBe('already hit');
     expect(dummyShip.hit.mock.calls.length).toBe(1);
   });
 });

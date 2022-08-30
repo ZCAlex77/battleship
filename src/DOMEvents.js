@@ -31,7 +31,7 @@ const DOMEvents = (() => {
       if (orientation === 'horizontal') orientation = 'vertical';
       else orientation = 'horizontal';
 
-      game.playerGameboard.switchOrientation();
+      game.playerGameboard.setOrientation(orientation);
       document.querySelector('#orientation').textContent = orientation;
     };
   };
@@ -104,7 +104,7 @@ const DOMEvents = (() => {
           );
 
           let msg = game.playerGameboard.addShip(ship);
-          if (msg !== 'Invalid position.') {
+          if (msg !== 'invalid position') {
             UI.updateShipyard(currentShipType);
             lastHover = [];
             currentShipType++;

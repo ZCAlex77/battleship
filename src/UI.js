@@ -16,7 +16,7 @@ const UI = (() => {
   };
 
   const updateCellAfterAttack = (cell, outcome) => {
-    let marker = outcome === 'Hit water.' ? 'miss' : 'hit';
+    let marker = outcome === 'misses' ? 'miss' : 'hit';
     cell.classList.add(marker);
   };
 
