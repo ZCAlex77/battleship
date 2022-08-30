@@ -146,6 +146,7 @@ __webpack_require__.r(__webpack_exports__);
 const UI = (() => {
   const shipTypes = document.querySelectorAll('.ship');
   let nextNumber = [0, 0, 1, 0, 0];
+  let lastPlayer = '';
 
   const updateName = newName => {
     document.querySelector('.name').textContent = newName;
@@ -169,7 +170,7 @@ const UI = (() => {
 
   const showGameStats = () => {
     document.querySelector('#shipyard').style.display = 'none';
-    document.querySelector('#game-stats').style.display = 'block';
+    document.querySelector('#game-stats').style.display = 'grid';
   };
 
   const showStartButton = () => {
@@ -188,8 +189,27 @@ const UI = (() => {
     shipTypes[currentShip].querySelector('p').textContent = `${numberOfShips}x`;
   };
 
-  const updateTurn = name => {
-    document.querySelector('#attacker').textContent = name;
+  const updateBattleLog = (player, whatToUpdate, value = '') => {
+    let log = '';
+
+    switch (whatToUpdate) {
+      case 'turn':
+        log = `${player} is attacking!`;
+        break;
+
+      case 'hit':
+        log = `The projectile ${value}.`;
+        break;
+
+      case 'sunk':
+        log = `${player} has sunk a ship.`;
+        break;
+    }
+
+    let p = document.createElement('p');
+    p.textContent = log;
+    if (player === 'Computer') p.classList.add('right-align');
+    document.querySelector('#battle-log').prepend(p);
   };
 
   const renderGameboard = (cells, name) => {
@@ -218,7 +238,7 @@ const UI = (() => {
     showGameStats,
     showStartButton,
     updateShipyard,
-    updateTurn,
+    updateBattleLog,
     updateCellAfterAttack
   };
 })();
@@ -281,6 +301,8 @@ const gameboardFactory = () => {
 
   const getCells = () => cells;
 
+  const getShips = () => ships;
+
   const setOrientation = newOrientation => {
     orientation = newOrientation;
     return orientation;
@@ -321,6 +343,7 @@ const gameboardFactory = () => {
   return {
     setOrientation,
     getCells,
+    getShips,
     addShip,
     receiveAttack,
     canPlaceShip
@@ -430,16 +453,21 @@ const game = (() => {
   const playRound = (attacker, attackedCell) => {
     // check if the game is running and if it's this player's turn
     if (!isGameRunning() || !players[attacker].getTurn()) return;
-    let attackedGameboard = attacker === 0 ? computerGameboard : playerGameboard; // attempt attack
+    let attackedGameboard = attacker === 0 ? computerGameboard : playerGameboard;
+    let cellIndex = Number(attackedCell.getAttribute('data-index'));
+    let shipIndex = attackedGameboard.getCells()[cellIndex]; // attempt attack
 
-    let msg = attackedGameboard.receiveAttack(Number(attackedCell.getAttribute('data-index'))); // check if the position was already hit
+    let msg = attackedGameboard.receiveAttack(cellIndex); // check if the position was already hit
 
-    if (msg === 'Already hit.') return;
+    if (msg === 'already hit') return;
     _UI__WEBPACK_IMPORTED_MODULE_4__["default"].updateCellAfterAttack(attackedCell, msg);
-    _UI__WEBPACK_IMPORTED_MODULE_4__["default"].updateTurn(game.players[1 - attacker].name);
+    _UI__WEBPACK_IMPORTED_MODULE_4__["default"].updateBattleLog(game.players[attacker].name, 'hit', msg); // check for sunk ships
+
+    if (msg === 'hits a ship' && attackedGameboard.getShips()[shipIndex].isSunk()) _UI__WEBPACK_IMPORTED_MODULE_4__["default"].updateBattleLog(game.players[attacker].name, 'sunk');
     players[attacker].switchTurn();
     players[1 - attacker].switchTurn(); // let computer attack
 
+    _UI__WEBPACK_IMPORTED_MODULE_4__["default"].updateBattleLog(game.players[1 - attacker].name, 'turn');
     if (attacker === 1) return;
     setTimeout(() => {
       let index = generateRandomAttack(playerGameboard.getCells());
@@ -451,7 +479,7 @@ const game = (() => {
   const setup = (() => {
     _UI__WEBPACK_IMPORTED_MODULE_4__["default"].renderGameboard(playerGameboard.getCells(), players[0].name);
     _UI__WEBPACK_IMPORTED_MODULE_4__["default"].renderGameboard(computerGameboard.getCells(), players[1].name);
-    _UI__WEBPACK_IMPORTED_MODULE_4__["default"].updateTurn(players[0].name);
+    _UI__WEBPACK_IMPORTED_MODULE_4__["default"].updateBattleLog(players[0].name, 'turn');
     _DOMEvents__WEBPACK_IMPORTED_MODULE_5__["default"].addCellEvent();
     _DOMEvents__WEBPACK_IMPORTED_MODULE_5__["default"].addSwitchEvent();
     _UI__WEBPACK_IMPORTED_MODULE_4__["default"].showShipyard();
@@ -497,7 +525,7 @@ ___CSS_LOADER_EXPORT___.push([module.id, "@import url(https://fonts.googleapis.c
 var ___CSS_LOADER_URL_REPLACEMENT_0___ = _node_modules_css_loader_dist_runtime_getUrl_js__WEBPACK_IMPORTED_MODULE_2___default()(___CSS_LOADER_URL_IMPORT_0___);
 var ___CSS_LOADER_URL_REPLACEMENT_1___ = _node_modules_css_loader_dist_runtime_getUrl_js__WEBPACK_IMPORTED_MODULE_2___default()(___CSS_LOADER_URL_IMPORT_1___);
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "html {\n  font-family: \"Bebas Neue\", cursive;\n}\n\n* {\n  margin: 0;\n  padding: 0;\n  box-sizing: border-box;\n  color: inherit;\n  font-family: inherit;\n}\n\nbody {\n  background: hsl(187deg, 40%, 34%);\n}\n\n#game {\n  width: 100%;\n  height: 100vh;\n  display: grid;\n  grid-template-columns: 32px 1fr 16px 0.5fr 16px 1fr 32px;\n  grid-template-rows: 64px 1fr 32px;\n}\n\nheader {\n  display: flex;\n  align-items: center;\n  grid-area: 1/3/span 1/span 3;\n  background: hsl(187deg, 40%, 50%);\n  align-self: center;\n}\nheader h1 {\n  color: hsl(187deg, 40%, 10%);\n  font-size: 2rem;\n  text-align: center;\n  width: 100%;\n  letter-spacing: 2px;\n}\n\n#menu {\n  grid-area: 2/4/span 1/span 1;\n  background: hsl(187deg, 40%, 10%);\n  color: hsl(187deg, 40%, 50%);\n  padding: 16px;\n}\n#menu h2,\n#menu h3 {\n  font-weight: normal;\n}\n#menu h2 {\n  text-align: center;\n  margin-bottom: 32px;\n}\n#menu input[type=button],\n#menu button {\n  background: hsl(187deg, 40%, 50%);\n  color: hsl(187deg, 40%, 10%);\n  border: 0;\n  cursor: pointer;\n  border-radius: 999px;\n  font-size: 1.2rem;\n  padding: 5px 10px;\n  width: 100%;\n  text-align: center;\n  margin-bottom: 20px;\n}\n#menu form {\n  display: none;\n}\n#menu form label {\n  font-size: 1.4rem;\n  text-align: center;\n  display: block;\n  margin-bottom: 32px;\n}\n#menu form input {\n  border: 0;\n  font-size: 1.2rem;\n  padding: 4px;\n  margin-bottom: 16px;\n}\n#menu form input[type=text] {\n  background: #fff;\n  color: hsl(187deg, 40%, 10%);\n  width: 100%;\n  text-align: center;\n}\n\n#shipyard {\n  display: none;\n}\n#shipyard .active-ship {\n  border: 2px solid hsl(187deg, 40%, 50%);\n}\n#shipyard .ship {\n  padding: 2px 10px;\n  width: 100%;\n  height: 50px;\n  display: grid;\n  grid-template-columns: 4ch repeat(5, 1fr);\n  margin-bottom: 20px;\n  gap: 2px;\n}\n#shipyard .ship p {\n  place-self: center;\n  font-size: 1.5rem;\n}\n#shipyard .ship span {\n  aspect-ratio: 1/1;\n  background: hsl(187deg, 40%, 50%);\n  align-self: center;\n}\n\n.name {\n  grid-row: 1/span 1;\n  grid-column: 2/span 1;\n  align-self: center;\n  background: hsl(187deg, 40%, 10%);\n  color: hsl(187deg, 40%, 50%);\n  justify-self: stretch;\n  padding: 0 10px;\n}\n\n.name:last-of-type {\n  grid-column: 6/span 1;\n  text-align: right;\n}\n\n.gameboard {\n  display: grid;\n  grid-template: repeat(10, 1fr)/repeat(10, 1fr);\n  gap: 2px;\n  aspect-ratio: 1/1;\n  grid-row: 2/span 1;\n  align-self: center;\n}\n.gameboard .cell {\n  border: 1px solid hsl(187deg, 40%, 10%);\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background-size: contain;\n  background-position: center;\n  background-repeat: no-repeat;\n}\n.gameboard .cell p {\n  font-size: 2rem;\n  color: #f00;\n}\n.gameboard .hit {\n  background-image: url(" + ___CSS_LOADER_URL_REPLACEMENT_0___ + ");\n}\n.gameboard .miss {\n  background-image: url(" + ___CSS_LOADER_URL_REPLACEMENT_1___ + ");\n}\n.gameboard .active {\n  background-color: hsl(187deg, 40%, 10%);\n}\n\n#player-gameboard {\n  grid-column: 2/span 1;\n}\n\n#computer-gameboard {\n  grid-column: 6/span 1;\n}\n\n#start-game {\n  display: none;\n}\n\n#game-stats {\n  display: none;\n}", "",{"version":3,"sources":["webpack://./src/style/index.scss"],"names":[],"mappings":"AAEA;EACE,kCAAA;AAAF;;AAGA;EACE,SAAA;EACA,UAAA;EACA,sBAAA;EACA,cAAA;EACA,oBAAA;AAAF;;AAOA;EACE,iCAJU;AAAZ;;AAOA;EACE,WAAA;EACA,aAAA;EACA,aAAA;EACA,wDAAA;EACA,iCAAA;AAJF;;AAOA;EACE,aAAA;EACA,mBAAA;EACA,4BAAA;EACA,iCAlBW;EAmBX,kBAAA;AAJF;AAME;EACE,4BAxBU;EAyBV,eAAA;EACA,kBAAA;EACA,WAAA;EACA,mBAAA;AAJJ;;AAQA;EACE,4BAAA;EACA,iCAlCY;EAmCZ,4BAjCW;EAkCX,aAAA;AALF;AAOE;;EAEE,mBAAA;AALJ;AAQE;EACE,kBAAA;EACA,mBAAA;AANJ;AASE;;EAEE,iCAhDS;EAiDT,4BAnDU;EAoDV,SAAA;EACA,eAAA;EACA,oBAAA;EACA,iBAAA;EACA,iBAAA;EACA,WAAA;EACA,kBAAA;EACA,mBAAA;AAPJ;AAUE;EACE,aAAA;AARJ;AAUI;EACE,iBAAA;EACA,kBAAA;EACA,cAAA;EACA,mBAAA;AARN;AAUI;EACE,SAAA;EACA,iBAAA;EACA,YAAA;EACA,mBAAA;AARN;AAUI;EACE,gBAAA;EACA,4BA/EQ;EAgFR,WAAA;EACA,kBAAA;AARN;;AAaA;EACE,aAAA;AAVF;AAYE;EACE,uCAAA;AAVJ;AAaE;EACE,iBAAA;EACA,WAAA;EACA,YAAA;EACA,aAAA;EACA,yCAAA;EACA,mBAAA;EACA,QAAA;AAXJ;AAaI;EACE,kBAAA;EACA,iBAAA;AAXN;AAcI;EACE,iBAAA;EACA,iCA3GO;EA4GP,kBAAA;AAZN;;AAiBA;EACE,kBAAA;EACA,qBAAA;EACA,kBAAA;EACA,iCAvHY;EAwHZ,4BAtHW;EAuHX,qBAAA;EACA,eAAA;AAdF;;AAiBA;EACE,qBAAA;EACA,iBAAA;AAdF;;AAiBA;EACE,aAAA;EACA,8CAAA;EACA,QAAA;EACA,iBAAA;EACA,kBAAA;EACA,kBAAA;AAdF;AAgBE;EACE,uCAAA;EACA,eAAA;EACA,aAAA;EACA,mBAAA;EACA,uBAAA;EACA,wBAAA;EACA,2BAAA;EACA,4BAAA;AAdJ;AAgBI;EACE,eAAA;EACA,WAAA;AAdN;AAkBE;EACE,yDAAA;AAhBJ;AAmBE;EACE,yDAAA;AAjBJ;AAoBE;EACE,uCAnKU;AAiJd;;AAsBA;EACE,qBAAA;AAnBF;;AAsBA;EACE,qBAAA;AAnBF;;AAsBA;EACE,aAAA;AAnBF;;AAsBA;EACE,aAAA;AAnBF","sourcesContent":["@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');\r\n\r\nhtml {\r\n  font-family: 'Bebas Neue', cursive;\r\n}\r\n\r\n* {\r\n  margin: 0;\r\n  padding: 0;\r\n  box-sizing: border-box;\r\n  color: inherit;\r\n  font-family: inherit;\r\n}\r\n\r\n$darker-cyan: hsl(187, 40%, 10%);\r\n$dark-cyan: hsl(187, 40%, 34%);\r\n$light-cyan: hsl(187, 40%, 50%);\r\n\r\nbody {\r\n  background: $dark-cyan;\r\n}\r\n\r\n#game {\r\n  width: 100%;\r\n  height: 100vh;\r\n  display: grid;\r\n  grid-template-columns: 32px 1fr 16px 0.5fr 16px 1fr 32px;\r\n  grid-template-rows: 64px 1fr 32px;\r\n}\r\n\r\nheader {\r\n  display: flex;\r\n  align-items: center;\r\n  grid-area: 1 / 3 / span 1 / span 3;\r\n  background: $light-cyan;\r\n  align-self: center;\r\n\r\n  h1 {\r\n    color: $darker-cyan;\r\n    font-size: 2rem;\r\n    text-align: center;\r\n    width: 100%;\r\n    letter-spacing: 2px;\r\n  }\r\n}\r\n\r\n#menu {\r\n  grid-area: 2 / 4 / span 1 / span 1;\r\n  background: $darker-cyan;\r\n  color: $light-cyan;\r\n  padding: 16px;\r\n\r\n  h2,\r\n  h3 {\r\n    font-weight: normal;\r\n  }\r\n\r\n  h2 {\r\n    text-align: center;\r\n    margin-bottom: 32px;\r\n  }\r\n\r\n  input[type='button'],\r\n  button {\r\n    background: $light-cyan;\r\n    color: $darker-cyan;\r\n    border: 0;\r\n    cursor: pointer;\r\n    border-radius: 999px;\r\n    font-size: 1.2rem;\r\n    padding: 5px 10px;\r\n    width: 100%;\r\n    text-align: center;\r\n    margin-bottom: 20px;\r\n  }\r\n\r\n  form {\r\n    display: none;\r\n\r\n    label {\r\n      font-size: 1.4rem;\r\n      text-align: center;\r\n      display: block;\r\n      margin-bottom: 32px;\r\n    }\r\n    input {\r\n      border: 0;\r\n      font-size: 1.2rem;\r\n      padding: 4px;\r\n      margin-bottom: 16px;\r\n    }\r\n    input[type='text'] {\r\n      background: #fff;\r\n      color: $darker-cyan;\r\n      width: 100%;\r\n      text-align: center;\r\n    }\r\n  }\r\n}\r\n\r\n#shipyard {\r\n  display: none;\r\n\r\n  .active-ship {\r\n    border: 2px solid $light-cyan;\r\n  }\r\n\r\n  .ship {\r\n    padding: 2px 10px;\r\n    width: 100%;\r\n    height: 50px;\r\n    display: grid;\r\n    grid-template-columns: 4ch repeat(5, 1fr);\r\n    margin-bottom: 20px;\r\n    gap: 2px;\r\n\r\n    p {\r\n      place-self: center;\r\n      font-size: 1.5rem;\r\n    }\r\n\r\n    span {\r\n      aspect-ratio: 1/1;\r\n      background: $light-cyan;\r\n      align-self: center;\r\n    }\r\n  }\r\n}\r\n\r\n.name {\r\n  grid-row: 1 / span 1;\r\n  grid-column: 2 / span 1;\r\n  align-self: center;\r\n  background: $darker-cyan;\r\n  color: $light-cyan;\r\n  justify-self: stretch;\r\n  padding: 0 10px;\r\n}\r\n\r\n.name:last-of-type {\r\n  grid-column: 6 / span 1;\r\n  text-align: right;\r\n}\r\n\r\n.gameboard {\r\n  display: grid;\r\n  grid-template: repeat(10, 1fr) / repeat(10, 1fr);\r\n  gap: 2px;\r\n  aspect-ratio: 1/1;\r\n  grid-row: 2 / span 1;\r\n  align-self: center;\r\n\r\n  .cell {\r\n    border: 1px solid $darker-cyan;\r\n    cursor: pointer;\r\n    display: flex;\r\n    align-items: center;\r\n    justify-content: center;\r\n    background-size: contain;\r\n    background-position: center;\r\n    background-repeat: no-repeat;\r\n\r\n    p {\r\n      font-size: 2rem;\r\n      color: #f00;\r\n    }\r\n  }\r\n\r\n  .hit {\r\n    background-image: url('../assets/hit.svg');\r\n  }\r\n\r\n  .miss {\r\n    background-image: url('../assets/miss.svg');\r\n  }\r\n\r\n  .active {\r\n    background-color: $darker-cyan;\r\n  }\r\n}\r\n\r\n#player-gameboard {\r\n  grid-column: 2 / span 1;\r\n}\r\n\r\n#computer-gameboard {\r\n  grid-column: 6 / span 1;\r\n}\r\n\r\n#start-game {\r\n  display: none;\r\n}\r\n\r\n#game-stats {\r\n  display: none;\r\n}\r\n"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, "html {\n  font-family: \"Bebas Neue\", cursive;\n}\n\n* {\n  margin: 0;\n  padding: 0;\n  box-sizing: border-box;\n  color: inherit;\n  font-family: inherit;\n}\n\nbody {\n  background: hsl(187deg, 40%, 34%);\n}\n\n#game {\n  width: 100%;\n  height: 100vh;\n  display: grid;\n  grid-template-columns: 32px 1fr 16px 0.5fr 16px 1fr 32px;\n  grid-template-rows: 64px 1fr 32px;\n}\n\nheader {\n  display: flex;\n  align-items: center;\n  grid-area: 1/3/span 1/span 3;\n  background: hsl(187deg, 40%, 50%);\n  align-self: center;\n}\nheader h1 {\n  color: hsl(187deg, 40%, 10%);\n  font-size: 2rem;\n  text-align: center;\n  width: 100%;\n  letter-spacing: 2px;\n}\n\n#menu {\n  grid-area: 2/4/span 1/span 1;\n  background: hsl(187deg, 40%, 10%);\n  color: hsl(187deg, 40%, 50%);\n  padding: 16px;\n}\n#menu h2,\n#menu h3 {\n  font-weight: normal;\n}\n#menu h2 {\n  text-align: center;\n  margin-bottom: 32px;\n}\n#menu input[type=button],\n#menu button {\n  background: hsl(187deg, 40%, 50%);\n  color: hsl(187deg, 40%, 10%);\n  border: 0;\n  cursor: pointer;\n  border-radius: 999px;\n  font-size: 1.2rem;\n  padding: 5px 10px;\n  width: 100%;\n  text-align: center;\n  margin-bottom: 20px;\n}\n#menu form {\n  display: none;\n}\n#menu form label {\n  font-size: 1.4rem;\n  text-align: center;\n  display: block;\n  margin-bottom: 32px;\n}\n#menu form input {\n  border: 0;\n  font-size: 1.2rem;\n  padding: 4px;\n  margin-bottom: 16px;\n}\n#menu form input[type=text] {\n  background: #fff;\n  color: hsl(187deg, 40%, 10%);\n  width: 100%;\n  text-align: center;\n}\n\n#shipyard {\n  display: none;\n}\n#shipyard .active-ship {\n  border: 2px solid hsl(187deg, 40%, 50%);\n}\n#shipyard .ship {\n  padding: 2px 10px;\n  width: 100%;\n  height: 50px;\n  display: grid;\n  grid-template-columns: 4ch repeat(5, 1fr);\n  margin-bottom: 20px;\n  gap: 2px;\n}\n#shipyard .ship p {\n  place-self: center;\n  font-size: 1.5rem;\n}\n#shipyard .ship span {\n  aspect-ratio: 1/1;\n  background: hsl(187deg, 40%, 50%);\n  align-self: center;\n}\n\n.name {\n  grid-row: 1/span 1;\n  grid-column: 2/span 1;\n  align-self: center;\n  background: hsl(187deg, 40%, 10%);\n  color: hsl(187deg, 40%, 50%);\n  justify-self: stretch;\n  padding: 0 10px;\n}\n\n.name:last-of-type {\n  grid-column: 6/span 1;\n  text-align: right;\n}\n\n.gameboard {\n  display: grid;\n  grid-template: repeat(10, 1fr)/repeat(10, 1fr);\n  gap: 2px;\n  aspect-ratio: 1/1;\n  grid-row: 2/span 1;\n  align-self: center;\n}\n.gameboard .cell {\n  border: 1px solid hsl(187deg, 40%, 10%);\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background-size: 20%;\n  background-position: center;\n  background-repeat: no-repeat;\n}\n.gameboard .cell p {\n  font-size: 2rem;\n  color: #f00;\n}\n.gameboard .hit,\n.gameboard .miss {\n  animation: grow 0.2s linear forwards;\n}\n.gameboard .hit {\n  background-image: url(" + ___CSS_LOADER_URL_REPLACEMENT_0___ + ");\n}\n.gameboard .miss {\n  background-image: url(" + ___CSS_LOADER_URL_REPLACEMENT_1___ + ");\n}\n.gameboard .active {\n  background-color: hsl(187deg, 40%, 10%);\n}\n\n#player-gameboard {\n  grid-column: 2/span 1;\n}\n\n#computer-gameboard {\n  grid-column: 6/span 1;\n}\n#computer-gameboard .cell:hover {\n  border: 1px solid lime;\n}\n\n#start-game {\n  display: none;\n}\n\n#game-stats {\n  display: none;\n  grid-template-rows: 10% 90%;\n  height: 100%;\n}\n\n#battle-log {\n  height: 65vh;\n  position: relative;\n  overflow-y: hidden;\n  border-bottom: 1px solid hsl(187deg, 40%, 50%);\n  border-top: 1px solid hsl(187deg, 40%, 50%);\n  padding-top: 2px;\n}\n#battle-log .right-align {\n  text-align: right;\n}\n\n@keyframes grow {\n  from {\n    background-size: 20%;\n  }\n  to {\n    background-size: 100%;\n  }\n}", "",{"version":3,"sources":["webpack://./src/style/index.scss"],"names":[],"mappings":"AAEA;EACE,kCAAA;AAAF;;AAGA;EACE,SAAA;EACA,UAAA;EACA,sBAAA;EACA,cAAA;EACA,oBAAA;AAAF;;AAOA;EACE,iCAJU;AAAZ;;AAOA;EACE,WAAA;EACA,aAAA;EACA,aAAA;EACA,wDAAA;EACA,iCAAA;AAJF;;AAOA;EACE,aAAA;EACA,mBAAA;EACA,4BAAA;EACA,iCAlBW;EAmBX,kBAAA;AAJF;AAME;EACE,4BAxBU;EAyBV,eAAA;EACA,kBAAA;EACA,WAAA;EACA,mBAAA;AAJJ;;AAQA;EACE,4BAAA;EACA,iCAlCY;EAmCZ,4BAjCW;EAkCX,aAAA;AALF;AAOE;;EAEE,mBAAA;AALJ;AAQE;EACE,kBAAA;EACA,mBAAA;AANJ;AASE;;EAEE,iCAhDS;EAiDT,4BAnDU;EAoDV,SAAA;EACA,eAAA;EACA,oBAAA;EACA,iBAAA;EACA,iBAAA;EACA,WAAA;EACA,kBAAA;EACA,mBAAA;AAPJ;AAUE;EACE,aAAA;AARJ;AAUI;EACE,iBAAA;EACA,kBAAA;EACA,cAAA;EACA,mBAAA;AARN;AAUI;EACE,SAAA;EACA,iBAAA;EACA,YAAA;EACA,mBAAA;AARN;AAUI;EACE,gBAAA;EACA,4BA/EQ;EAgFR,WAAA;EACA,kBAAA;AARN;;AAaA;EACE,aAAA;AAVF;AAYE;EACE,uCAAA;AAVJ;AAaE;EACE,iBAAA;EACA,WAAA;EACA,YAAA;EACA,aAAA;EACA,yCAAA;EACA,mBAAA;EACA,QAAA;AAXJ;AAaI;EACE,kBAAA;EACA,iBAAA;AAXN;AAcI;EACE,iBAAA;EACA,iCA3GO;EA4GP,kBAAA;AAZN;;AAiBA;EACE,kBAAA;EACA,qBAAA;EACA,kBAAA;EACA,iCAvHY;EAwHZ,4BAtHW;EAuHX,qBAAA;EACA,eAAA;AAdF;;AAiBA;EACE,qBAAA;EACA,iBAAA;AAdF;;AAiBA;EACE,aAAA;EACA,8CAAA;EACA,QAAA;EACA,iBAAA;EACA,kBAAA;EACA,kBAAA;AAdF;AAgBE;EACE,uCAAA;EACA,eAAA;EACA,aAAA;EACA,mBAAA;EACA,uBAAA;EACA,oBAAA;EACA,2BAAA;EACA,4BAAA;AAdJ;AAgBI;EACE,eAAA;EACA,WAAA;AAdN;AAkBE;;EAEE,oCAAA;AAhBJ;AAmBE;EACE,yDAAA;AAjBJ;AAoBE;EACE,yDAAA;AAlBJ;AAqBE;EACE,uCAxKU;AAqJd;;AAuBA;EACE,qBAAA;AApBF;;AAuBA;EACE,qBAAA;AApBF;AAuBI;EACE,sBAAA;AArBN;;AA0BA;EACE,aAAA;AAvBF;;AA0BA;EACE,aAAA;EACA,2BAAA;EACA,YAAA;AAvBF;;AA0BA;EACE,YAAA;EACA,kBAAA;EACA,kBAAA;EACA,8CAAA;EACA,2CAAA;EACA,gBAAA;AAvBF;AAyBE;EACE,iBAAA;AAvBJ;;AA2BA;EACE;IACE,oBAAA;EAxBF;EA0BA;IACE,qBAAA;EAxBF;AACF","sourcesContent":["@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');\r\n\r\nhtml {\r\n  font-family: 'Bebas Neue', cursive;\r\n}\r\n\r\n* {\r\n  margin: 0;\r\n  padding: 0;\r\n  box-sizing: border-box;\r\n  color: inherit;\r\n  font-family: inherit;\r\n}\r\n\r\n$darker-cyan: hsl(187, 40%, 10%);\r\n$dark-cyan: hsl(187, 40%, 34%);\r\n$light-cyan: hsl(187, 40%, 50%);\r\n\r\nbody {\r\n  background: $dark-cyan;\r\n}\r\n\r\n#game {\r\n  width: 100%;\r\n  height: 100vh;\r\n  display: grid;\r\n  grid-template-columns: 32px 1fr 16px 0.5fr 16px 1fr 32px;\r\n  grid-template-rows: 64px 1fr 32px;\r\n}\r\n\r\nheader {\r\n  display: flex;\r\n  align-items: center;\r\n  grid-area: 1 / 3 / span 1 / span 3;\r\n  background: $light-cyan;\r\n  align-self: center;\r\n\r\n  h1 {\r\n    color: $darker-cyan;\r\n    font-size: 2rem;\r\n    text-align: center;\r\n    width: 100%;\r\n    letter-spacing: 2px;\r\n  }\r\n}\r\n\r\n#menu {\r\n  grid-area: 2 / 4 / span 1 / span 1;\r\n  background: $darker-cyan;\r\n  color: $light-cyan;\r\n  padding: 16px;\r\n\r\n  h2,\r\n  h3 {\r\n    font-weight: normal;\r\n  }\r\n\r\n  h2 {\r\n    text-align: center;\r\n    margin-bottom: 32px;\r\n  }\r\n\r\n  input[type='button'],\r\n  button {\r\n    background: $light-cyan;\r\n    color: $darker-cyan;\r\n    border: 0;\r\n    cursor: pointer;\r\n    border-radius: 999px;\r\n    font-size: 1.2rem;\r\n    padding: 5px 10px;\r\n    width: 100%;\r\n    text-align: center;\r\n    margin-bottom: 20px;\r\n  }\r\n\r\n  form {\r\n    display: none;\r\n\r\n    label {\r\n      font-size: 1.4rem;\r\n      text-align: center;\r\n      display: block;\r\n      margin-bottom: 32px;\r\n    }\r\n    input {\r\n      border: 0;\r\n      font-size: 1.2rem;\r\n      padding: 4px;\r\n      margin-bottom: 16px;\r\n    }\r\n    input[type='text'] {\r\n      background: #fff;\r\n      color: $darker-cyan;\r\n      width: 100%;\r\n      text-align: center;\r\n    }\r\n  }\r\n}\r\n\r\n#shipyard {\r\n  display: none;\r\n\r\n  .active-ship {\r\n    border: 2px solid $light-cyan;\r\n  }\r\n\r\n  .ship {\r\n    padding: 2px 10px;\r\n    width: 100%;\r\n    height: 50px;\r\n    display: grid;\r\n    grid-template-columns: 4ch repeat(5, 1fr);\r\n    margin-bottom: 20px;\r\n    gap: 2px;\r\n\r\n    p {\r\n      place-self: center;\r\n      font-size: 1.5rem;\r\n    }\r\n\r\n    span {\r\n      aspect-ratio: 1/1;\r\n      background: $light-cyan;\r\n      align-self: center;\r\n    }\r\n  }\r\n}\r\n\r\n.name {\r\n  grid-row: 1 / span 1;\r\n  grid-column: 2 / span 1;\r\n  align-self: center;\r\n  background: $darker-cyan;\r\n  color: $light-cyan;\r\n  justify-self: stretch;\r\n  padding: 0 10px;\r\n}\r\n\r\n.name:last-of-type {\r\n  grid-column: 6 / span 1;\r\n  text-align: right;\r\n}\r\n\r\n.gameboard {\r\n  display: grid;\r\n  grid-template: repeat(10, 1fr) / repeat(10, 1fr);\r\n  gap: 2px;\r\n  aspect-ratio: 1/1;\r\n  grid-row: 2 / span 1;\r\n  align-self: center;\r\n\r\n  .cell {\r\n    border: 1px solid $darker-cyan;\r\n    cursor: pointer;\r\n    display: flex;\r\n    align-items: center;\r\n    justify-content: center;\r\n    background-size: 20%;\r\n    background-position: center;\r\n    background-repeat: no-repeat;\r\n\r\n    p {\r\n      font-size: 2rem;\r\n      color: #f00;\r\n    }\r\n  }\r\n\r\n  .hit,\r\n  .miss {\r\n    animation: grow 0.2s linear forwards;\r\n  }\r\n\r\n  .hit {\r\n    background-image: url('../assets/hit.svg');\r\n  }\r\n\r\n  .miss {\r\n    background-image: url('../assets/miss.svg');\r\n  }\r\n\r\n  .active {\r\n    background-color: $darker-cyan;\r\n  }\r\n}\r\n\r\n#player-gameboard {\r\n  grid-column: 2 / span 1;\r\n}\r\n\r\n#computer-gameboard {\r\n  grid-column: 6 / span 1;\r\n\r\n  .cell {\r\n    &:hover {\r\n      border: 1px solid lime;\r\n    }\r\n  }\r\n}\r\n\r\n#start-game {\r\n  display: none;\r\n}\r\n\r\n#game-stats {\r\n  display: none;\r\n  grid-template-rows: 10% 90%;\r\n  height: 100%;\r\n}\r\n\r\n#battle-log {\r\n  height: 65vh;\r\n  position: relative;\r\n  overflow-y: hidden;\r\n  border-bottom: 1px solid $light-cyan;\r\n  border-top: 1px solid $light-cyan;\r\n  padding-top: 2px;\r\n\r\n  .right-align {\r\n    text-align: right;\r\n  }\r\n}\r\n\r\n@keyframes grow {\r\n  from {\r\n    background-size: 20%;\r\n  }\r\n  to {\r\n    background-size: 100%;\r\n  }\r\n}\r\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -1050,7 +1078,7 @@ module.exports = styleTagTransform;
   \****************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-module.exports = __webpack_require__.p + "f50e921818e92325f34f.svg";
+module.exports = __webpack_require__.p + "8710e1d5a2e169e28f49.svg";
 
 /***/ }),
 

@@ -1,6 +1,7 @@
 const UI = (() => {
   const shipTypes = document.querySelectorAll('.ship');
   let nextNumber = [0, 0, 1, 0, 0];
+  let lastPlayer = '';
 
   const updateName = (newName) => {
     document.querySelector('.name').textContent = newName;
@@ -26,7 +27,7 @@ const UI = (() => {
 
   const showGameStats = () => {
     document.querySelector('#shipyard').style.display = 'none';
-    document.querySelector('#game-stats').style.display = 'block';
+    document.querySelector('#game-stats').style.display = 'grid';
   };
 
   const showStartButton = () => {
@@ -43,8 +44,25 @@ const UI = (() => {
     shipTypes[currentShip].querySelector('p').textContent = `${numberOfShips}x`;
   };
 
-  const updateTurn = (name) => {
-    document.querySelector('#attacker').textContent = name;
+  const updateBattleLog = (player, whatToUpdate, value = '') => {
+    let log = '';
+    switch (whatToUpdate) {
+      case 'turn':
+        log = `${player} is attacking!`;
+        break;
+      case 'hit':
+        log = `The projectile ${value}.`;
+        break;
+      case 'sunk':
+        log = `${player} has sunk a ship.`;
+        break;
+    }
+
+    let p = document.createElement('p');
+    p.textContent = log;
+    if (player === 'Computer') p.classList.add('right-align');
+
+    document.querySelector('#battle-log').prepend(p);
   };
 
   const renderGameboard = (cells, name) => {
@@ -74,7 +92,7 @@ const UI = (() => {
     showGameStats,
     showStartButton,
     updateShipyard,
-    updateTurn,
+    updateBattleLog,
     updateCellAfterAttack,
   };
 })();

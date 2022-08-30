@@ -4,6 +4,8 @@ const gameboardFactory = () => {
   let orientation = 'horizontal';
 
   const getCells = () => cells;
+  const getShips = () => ships;
+
   const setOrientation = (newOrientation) => {
     orientation = newOrientation;
     return orientation;
@@ -46,7 +48,14 @@ const gameboardFactory = () => {
     return msg;
   };
 
-  return { setOrientation, getCells, addShip, receiveAttack, canPlaceShip };
+  return {
+    setOrientation,
+    getCells,
+    getShips,
+    addShip,
+    receiveAttack,
+    canPlaceShip,
+  };
 };
 
 export default gameboardFactory;

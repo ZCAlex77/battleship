@@ -156,7 +156,7 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-size: contain;
+    background-size: 20%;
     background-position: center;
     background-repeat: no-repeat;
 
@@ -164,6 +164,11 @@ header {
       font-size: 2rem;
       color: #f00;
     }
+  }
+
+  .hit,
+  .miss {
+    animation: grow 0.2s linear forwards;
   }
 
   .hit {
@@ -185,6 +190,12 @@ header {
 
 #computer-gameboard {
   grid-column: 6 / span 1;
+
+  .cell {
+    &:hover {
+      border: 1px solid lime;
+    }
+  }
 }
 
 #start-game {
@@ -193,4 +204,28 @@ header {
 
 #game-stats {
   display: none;
+  grid-template-rows: 10% 90%;
+  height: 100%;
+}
+
+#battle-log {
+  height: 65vh;
+  position: relative;
+  overflow-y: hidden;
+  border-bottom: 1px solid $light-cyan;
+  border-top: 1px solid $light-cyan;
+  padding-top: 2px;
+
+  .right-align {
+    text-align: right;
+  }
+}
+
+@keyframes grow {
+  from {
+    background-size: 20%;
+  }
+  to {
+    background-size: 100%;
+  }
 }

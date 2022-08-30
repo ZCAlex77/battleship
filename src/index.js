@@ -65,20 +65,29 @@ const game = (() => {
 
     let attackedGameboard =
       attacker === 0 ? computerGameboard : playerGameboard;
-
+    let cellIndex = Number(attackedCell.getAttribute('data-index'));
+    let shipIndex = attackedGameboard.getCells()[cellIndex];
     // attempt attack
-    let msg = attackedGameboard.receiveAttack(
-      Number(attackedCell.getAttribute('data-index'))
-    );
+    let msg = attackedGameboard.receiveAttack(cellIndex);
 
     // check if the position was already hit
-    if (msg === 'Already hit.') return;
+    if (msg === 'already hit') return;
+
     UI.updateCellAfterAttack(attackedCell, msg);
-    UI.updateTurn(game.players[1 - attacker].name);
+    UI.updateBattleLog(game.players[attacker].name, 'hit', msg);
+
+    // check for sunk ships
+    if (
+      msg === 'hits a ship' &&
+      attackedGameboard.getShips()[shipIndex].isSunk()
+    )
+      UI.updateBattleLog(game.players[attacker].name, 'sunk');
+
     players[attacker].switchTurn();
     players[1 - attacker].switchTurn();
 
     // let computer attack
+    UI.updateBattleLog(game.players[1 - attacker].name, 'turn');
     if (attacker === 1) return;
     setTimeout(() => {
       let index = generateRandomAttack(playerGameboard.getCells());
@@ -92,7 +101,7 @@ const game = (() => {
   const setup = (() => {
     UI.renderGameboard(playerGameboard.getCells(), players[0].name);
     UI.renderGameboard(computerGameboard.getCells(), players[1].name);
-    UI.updateTurn(players[0].name);
+    UI.updateBattleLog(players[0].name, 'turn');
     DOMEvents.addCellEvent();
     DOMEvents.addSwitchEvent();
 
