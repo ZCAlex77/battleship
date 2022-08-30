@@ -6,9 +6,12 @@ const playerFactory = (name) => {
     return turn;
   };
 
+  const setName = (newName) => (name = newName);
+
+  const getName = () => name;
   const getTurn = () => turn;
 
-  return { name, switchTurn, getTurn };
+  return { getName, setName, switchTurn, getTurn };
 };
 
 export default playerFactory;

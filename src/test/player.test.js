@@ -4,7 +4,12 @@ describe('Player', () => {
   let player = playerFactory('John Doe');
 
   test('Successfully created', () => {
-    expect(player.name).toBe('John Doe');
+    expect(player.getName()).toBe('John Doe');
+  });
+
+  test('Successfully changed name', () => {
+    player.setName('Doe John');
+    expect(player.getName()).toBe('Doe John');
   });
 
   test('Switches turn', () => {

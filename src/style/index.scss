@@ -60,7 +60,7 @@ header {
     margin-bottom: 32px;
   }
 
-  input[type='button'],
+  input[type='submit'],
   button {
     background: $light-cyan;
     color: $darker-cyan;
@@ -73,28 +73,26 @@ header {
     text-align: center;
     margin-bottom: 20px;
   }
+}
 
-  form {
-    display: none;
-
-    label {
-      font-size: 1.4rem;
-      text-align: center;
-      display: block;
-      margin-bottom: 32px;
-    }
-    input {
-      border: 0;
-      font-size: 1.2rem;
-      padding: 4px;
-      margin-bottom: 16px;
-    }
-    input[type='text'] {
-      background: #fff;
-      color: $darker-cyan;
-      width: 100%;
-      text-align: center;
-    }
+#change-name {
+  label {
+    font-size: 1.4rem;
+    text-align: center;
+    display: block;
+    margin-bottom: 32px;
+  }
+  input {
+    border: 0;
+    font-size: 1.2rem;
+    padding: 4px;
+    margin-bottom: 16px;
+  }
+  input[type='text'] {
+    background: #fff;
+    color: $darker-cyan;
+    width: 100%;
+    text-align: center;
   }
 }
 
@@ -219,6 +217,10 @@ header {
   .right-align {
     text-align: right;
   }
+}
+
+#after-game {
+  display: none;
 }
 
 @keyframes grow {

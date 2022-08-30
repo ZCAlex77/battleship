@@ -5,7 +5,8 @@ import game from './index';
 const DOMEvents = (() => {
   const changeName = document.querySelector('#change-name'),
     switchOrientation = document.querySelector('#switch-orientation'),
-    startGame = document.querySelector('#start-game');
+    startGame = document.querySelector('#start-game'),
+    restartGame = document.querySelector('#restart-game');
 
   const shipTypes = ['xxxxx', 'xxxx', 'xxx', 'xxx', 'xx'];
   let currentShipType = 0;
@@ -16,8 +17,10 @@ const DOMEvents = (() => {
   changeName.onsubmit = function (ev) {
     ev.preventDefault();
     UI.updateName(this.name.value);
+    game.players[0].setName(this.name.value);
     this.style.display = 'none';
     UI.showShipyard();
+    addCellEvent();
   };
 
   startGame.onclick = function () {
@@ -26,12 +29,20 @@ const DOMEvents = (() => {
     addOpponentCellEvent();
   };
 
+  restartGame.onclick = function () {
+    currentHover = [];
+    lastHover = [];
+    currentShipType = 0;
+    orientation = 'horizontal';
+    game.restart();
+  };
+
   const addSwitchEvent = () => {
     switchOrientation.onclick = function () {
       if (orientation === 'horizontal') orientation = 'vertical';
       else orientation = 'horizontal';
 
-      game.playerGameboard.setOrientation(orientation);
+      game.getGameboard(0).setOrientation(orientation);
       document.querySelector('#orientation').textContent = orientation;
     };
   };
@@ -71,7 +82,7 @@ const DOMEvents = (() => {
         // check to see if the cells are empty
         if (
           !currentHover.every(
-            (position) => game.playerGameboard.getCells()[position] === -1
+            (position) => game.getGameboard(0).getCells()[position] === -1
           )
         )
           ok = false;
@@ -86,7 +97,7 @@ const DOMEvents = (() => {
         currentHover = [];
         if (
           lastHover.every((position) => {
-            game.playerGameboard.getCells()[position] === -1;
+            game.getGameboard(0).getCells()[position] === -1;
           })
         )
           return;
@@ -103,7 +114,7 @@ const DOMEvents = (() => {
             orientation
           );
 
-          let msg = game.playerGameboard.addShip(ship);
+          let msg = game.getGameboard(0).addShip(ship);
           if (msg !== 'invalid position') {
             UI.updateShipyard(currentShipType);
             lastHover = [];
