@@ -204,15 +204,19 @@ header {
   display: none;
   grid-template-rows: 10% 90%;
   height: 100%;
+  position: relative;
 }
 
 #battle-log {
-  height: 65vh;
-  position: relative;
+  position: absolute;
   overflow-y: hidden;
   border-bottom: 1px solid $light-cyan;
   border-top: 1px solid $light-cyan;
   padding-top: 2px;
+  top: 10%;
+  bottom: 10%;
+  left: 0;
+  right: 0;
 
   .right-align {
     text-align: right;
